@@ -1,133 +1,161 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import {
   View,
   Text,
-  TextInput,
   StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  ActivityIndicator,
   Button,
-  Alert,
 } from 'react-native';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../routes/types';
 
 type Sala = {
   id: number;
   nome: string;
-  bloco: string;
   capacidade: number;
   recursos: string;
+  bloco: string;
 };
 
-type RouteParams = {
-  FormSala: {
-    sala?: Sala;
-  };
-};
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
-export default function FormSala() {
-  const route = useRoute<RouteProp<RouteParams, 'FormSala'>>();
-  const navigation = useNavigation();
+export default function HomeScreen() {
   const { token, user } = useContext(AuthContext);
+  const navigation = useNavigation<NavigationProp>();
 
-  const sala = route.params?.sala;
-
-  const [nome, setNome] = useState(sala?.nome || '');
-  const [bloco, setBloco] = useState(sala?.bloco || '');
-  const [capacidade, setCapacidade] = useState(String(sala?.capacidade || ''));
-  const [recursos, setRecursos] = useState(sala?.recursos || '');
+  const [salas, setSalas] = useState<Sala[]>([]);
+  const [blocoSelecionado, setBlocoSelecionado] = useState<string | null>(null);
+  const [blocosDisponiveis, setBlocosDisponiveis] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user?.is_staff) {
-      Alert.alert('Acesso negado', 'Você não tem permissão para acessar esta tela.');
-      navigation.goBack();
-    }
+    buscarSalas();
   }, []);
 
-  const salvarSala = async () => {
-    if (!nome || !bloco || !capacidade) {
-      Alert.alert('Erro', 'Preencha todos os campos obrigatórios.');
-      return;
-    }
-
-    const payload = {
-      nome,
-      bloco,
-      capacidade: parseInt(capacidade),
-      recursos,
-    };
-
+  const buscarSalas = async () => {
     try {
-      if (sala) {
-        // Edição
-        await axios.put(
-          `http://127.0.0.1:8000/api/salas/${sala.id}/`,
-          payload,
-          { headers: { Authorization: `Token ${token}` } }
-        );
-        Alert.alert('Sucesso', 'Sala atualizada.');
-      } else {
-        // Criação
-        await axios.post(`http://127.0.0.1:8000/api/salas/`, payload, {
-          headers: { Authorization: `Token ${token}` },
-        });
-        Alert.alert('Sucesso', 'Sala criada.');
-      }
+      setLoading(true);
+      const response = await axios.get('http://127.0.0.1:8000/api/salas/', {
+        headers: { Authorization: `Token ${token}` },
+      });
 
-      navigation.goBack();
+      setSalas(response.data);
+
+      // Corrigido: set tipado como string[]
+      const blocosUnicos: string[] = [...new Set<string>(response.data.map((s: Sala) => s.bloco))];
+      setBlocosDisponiveis(blocosUnicos);
     } catch (error: any) {
-      console.log(error.response?.data || error.message);
-      Alert.alert('Erro', 'Não foi possível salvar a sala.');
+      console.error('Erro ao buscar salas:', error.message);
+    } finally {
+      setLoading(false);
     }
   };
+
+  const salasFiltradas = blocoSelecionado
+    ? salas.filter((s) => s.bloco === blocoSelecionado)
+    : salas;
+
+  const renderSala = ({ item }: { item: Sala }) => (
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => navigation.navigate('SalaDetalhes', { sala: item })}
+    >
+      <Text style={styles.titulo}>{item.nome}</Text>
+      <Text>Bloco: {item.bloco}</Text>
+      <Text>Capacidade: {item.capacidade}</Text>
+      <Text>Recursos: {item.recursos}</Text>
+    </TouchableOpacity>
+  );
+
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#333" />
+        <Text>Carregando salas...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.titulo}>{sala ? 'Editar Sala' : 'Nova Sala'}</Text>
-
-      <TextInput
-        style={styles.input}
-        placeholder="Nome da Sala"
-        value={nome}
-        onChangeText={setNome}
+      <Text style={styles.header}>Blocos</Text>
+      <FlatList
+        data={blocosDisponiveis}
+        horizontal
+        keyExtractor={(item) => item}
+        contentContainerStyle={styles.blocosContainer}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={[
+              styles.bloco,
+              blocoSelecionado === item && styles.blocoSelecionado,
+            ]}
+            onPress={() => setBlocoSelecionado(item === blocoSelecionado ? null : item)}
+          >
+            <Text style={styles.blocoTexto}>{item}</Text>
+          </TouchableOpacity>
+        )}
       />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Bloco"
-        value={bloco}
-        onChangeText={setBloco}
+      <FlatList
+        data={salasFiltradas}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={renderSala}
+        contentContainerStyle={styles.listaSalas}
       />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Capacidade"
-        value={capacidade}
-        onChangeText={setCapacidade}
-        keyboardType="numeric"
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Recursos"
-        value={recursos}
-        onChangeText={setRecursos}
-      />
-
-      <Button title="Salvar" onPress={salvarSala} />
+      {user?.is_staff && (
+        <View style={styles.adminArea}>
+          <Button title="⚙️ Gerenciar Salas" onPress={() => navigation.navigate('TelaAdminSalas')} />
+          <Button title="📜 Ver Histórico" onPress={() => navigation.navigate('TelaHistorico')} />
+        </View>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20 },
-  titulo: { fontSize: 18, fontWeight: 'bold', marginBottom: 20 },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
+  container: { flex: 1, padding: 16 },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  header: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  blocosContainer: {
+    marginBottom: 10,
+  },
+  bloco: {
+    backgroundColor: '#ddd',
+    padding: 10,
+    borderRadius: 20,
+    marginRight: 10,
+  },
+  blocoSelecionado: {
+    backgroundColor: '#007bff',
+  },
+  blocoTexto: {
+    color: '#000',
+  },
+  listaSalas: {
+    paddingBottom: 20,
+  },
+  card: {
+    backgroundColor: '#f2f2f2',
+    padding: 14,
     borderRadius: 8,
-    marginBottom: 12,
-    paddingHorizontal: 10,
-    height: 40,
+    marginBottom: 10,
+  },
+  titulo: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  adminArea: {
+    marginTop: 20,
   },
 });

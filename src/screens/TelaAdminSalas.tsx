@@ -112,7 +112,7 @@ export default function TelaAdminSalas() {
     <View style={styles.container}>
       <Button
         title="➕ Nova Sala"
-        onPress={() => navigation.navigate('FormSala')}
+        onPress={() => navigation.navigate('FormSala', {})}
       />
 
       <FlatList

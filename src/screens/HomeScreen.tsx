@@ -64,7 +64,7 @@ export default function HomeScreen() {
       });
       setSalas(response.data);
 
-      const blocosUnicos = [...new Set(response.data.map((s: Sala) => s.bloco))];
+      const blocosUnicos: string[] = [...new Set<string>(response.data.map((s: Sala) => s.bloco))];
       setBlocosDisponiveis(blocosUnicos);
     } catch (error: any) {
       console.log(error.response?.data || error.message);
@@ -212,6 +212,11 @@ export default function HomeScreen() {
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
               <Button title="Cancelar" onPress={() => setModalVisible(false)} color="#ccc" />
               <Button title="Confirmar" onPress={confirmarLimpeza} color="#28a745" />
+              
+              <View style={{ marginTop: 20 }}>
+              <Button title="👤 Meu Perfil" onPress={() => navigation.navigate('TelaPerfil')} />
+              </View>
+
             </View>
           </View>
         </View>

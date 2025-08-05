@@ -1,38 +1,34 @@
-import React, { createContext, useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-type User = {
-  id: number;
+interface User {
   username: string;
   is_staff: boolean;
-  // outros campos, se necessário
-};
+}
 
-export type AuthContextType = {
-  token: string | null;
+interface AuthContextType {
   user: User | null;
+  token: string | null;
   isAuthenticated: boolean;
+  loading: boolean;
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
-};
+}
 
-export const AuthContext = createContext<AuthContextType>({
-  token: null,
-  user: null,
-  isAuthenticated: false,
-  login: async () => {},
-  logout: () => {},
-});
+export const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [token, setToken] = useState<string | null>(null);
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-
-  const isAuthenticated = !!token;
+  const [token, setToken] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const carregarDados = async () => {
+    verificarLogin();
+  }, []);
+
+  const verificarLogin = async () => {
+    try {
       const tokenSalvo = await AsyncStorage.getItem('token');
       const userSalvo = await AsyncStorage.getItem('user');
 
@@ -40,34 +36,36 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setToken(tokenSalvo);
         setUser(JSON.parse(userSalvo));
       }
-    };
-
-    carregarDados();
-  }, []);
+    } catch (error) {
+      console.error('Erro ao restaurar sessão:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const login = async (username: string, password: string) => {
     try {
-      const response = await axios.post('http://127.0.0.1:8000/api/accounts/login/', {
+      const response = await axios.post('http://127.0.0.1:8000/api/token/login/', {
         username,
         password,
       });
 
-      const tokenRecebido = response.data.token;
-      setToken(tokenRecebido);
-      await AsyncStorage.setItem('token', tokenRecebido);
+      const tokenRecebido = response.data.auth_token;
 
-      // Buscar dados do usuário
-      const userResponse = await axios.get('http://127.0.0.1:8000/api/accounts/current_user/', {
-        headers: {
-          Authorization: `Token ${tokenRecebido}`,
-        },
+      const userResponse = await axios.get('http://127.0.0.1:8000/api/usuario-logado/', {
+        headers: { Authorization: `Token ${tokenRecebido}` },
       });
 
-      setUser(userResponse.data);
-      await AsyncStorage.setItem('user', JSON.stringify(userResponse.data));
-    } catch (error: any) {
-      console.log(error.response?.data || error.message);
-      throw new Error('Falha no login');
+      const userData = userResponse.data;
+
+      setToken(tokenRecebido);
+      setUser(userData);
+
+      await AsyncStorage.setItem('token', tokenRecebido);
+      await AsyncStorage.setItem('user', JSON.stringify(userData));
+    } catch (error) {
+      console.error('Erro no login:', error);
+      throw error;
     }
   };
 
@@ -79,7 +77,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ token, user, isAuthenticated, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        token,
+        isAuthenticated: !!token,
+        loading,
+        login,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
