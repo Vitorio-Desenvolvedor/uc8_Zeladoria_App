@@ -2,273 +2,179 @@ import React, { useEffect, useState, useContext } from 'react';
 import {
   View,
   Text,
-  FlatList,
   StyleSheet,
+  FlatList,
+  TouchableOpacity,
   ActivityIndicator,
-  Alert,
   Button,
-  ScrollView,
-  Modal,
   TextInput,
 } from 'react-native';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../routes/types';
 
 type Sala = {
   id: number;
   nome: string;
   capacidade: number;
   recursos: string;
-  status_limpeza: string;
-  ultima_limpeza_data_hora: string | null;
   bloco: string;
 };
 
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
+
 export default function HomeScreen() {
+  const { token, user } = useContext(AuthContext);
+  const navigation = useNavigation<NavigationProp>();
+
   const [salas, setSalas] = useState<Sala[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [filtroStatus, setFiltroStatus] = useState<'todos' | 'limpa' | 'pendente'>('todos');
-  const [filtroBloco, setFiltroBloco] = useState<string>('todos');
+  const [blocoSelecionado, setBlocoSelecionado] = useState<string | null>(null);
   const [blocosDisponiveis, setBlocosDisponiveis] = useState<string[]>([]);
-
-  const [modalVisible, setModalVisible] = useState(false);
-  const [observacao, setObservacao] = useState('');
-  const [salaSelecionada, setSalaSelecionada] = useState<Sala | null>(null);
-
-  const { token, logout } = useContext(AuthContext);
-  const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const [loading, setLoading] = useState(true);
+  const [busca, setBusca] = useState<string>(''); // estado da busca por nome
 
   useEffect(() => {
-    carregarSalas();
+    buscarSalas();
   }, []);
 
-  useEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <Button title="Sair" onPress={logout} color="#d9534f" />
-      ),
-      title: 'Salas',
-    });
-  }, [navigation]);
-
-  const carregarSalas = async () => {
+  const buscarSalas = async () => {
     try {
       setLoading(true);
       const response = await axios.get('http://127.0.0.1:8000/api/salas/', {
-        headers: {
-          Authorization: `Token ${token}`,
-        },
+        headers: { Authorization: `Token ${token}` },
       });
+
       setSalas(response.data);
 
       const blocosUnicos: string[] = [...new Set<string>(response.data.map((s: Sala) => s.bloco))];
       setBlocosDisponiveis(blocosUnicos);
     } catch (error: any) {
-      console.log(error.response?.data || error.message);
-      Alert.alert('Erro', 'Falha ao carregar salas.');
+      console.error('Erro ao buscar salas:', error.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const abrirModalLimpeza = (sala: Sala) => {
-    setSalaSelecionada(sala);
-    setObservacao('');
-    setModalVisible(true);
-  };
-
-  const confirmarLimpeza = async () => {
-    if (!salaSelecionada) return;
-
-    try {
-      await axios.post(
-        `http://127.0.0.1:8000/api/salas/${salaSelecionada.id}/marcar_como_limpa/`,
-        { observacao },
-        {
-          headers: {
-            Authorization: `Token ${token}`,
-          },
-        }
-      );
-
-      Alert.alert('Sucesso', 'Sala marcada como limpa.');
-      setModalVisible(false);
-      setObservacao('');
-      setSalaSelecionada(null);
-      carregarSalas();
-    } catch (error: any) {
-      console.log(error.response?.data || error.message);
-      Alert.alert('Erro', 'Não foi possível marcar a sala como limpa.');
-    }
-  };
-
-  const formatarData = (dataUtc: string | null): string => {
-    if (!dataUtc) return 'Nunca limpa';
-    const data = new Date(dataUtc);
-    return data.toLocaleString('pt-BR');
-  };
-
-  const salasFiltradas = salas.filter((sala) => {
-    const statusOk =
-      filtroStatus === 'todos' ||
-      (filtroStatus === 'limpa' && sala.status_limpeza === 'limpa') ||
-      (filtroStatus === 'pendente' && sala.status_limpeza !== 'limpa');
-
-    const blocoOk = filtroBloco === 'todos' || sala.bloco === filtroBloco;
-
-    return statusOk && blocoOk;
+  const salasFiltradas = salas.filter((s) => {
+    const nomeCorrespondente = s.nome.toLowerCase().includes(busca.toLowerCase());
+    const blocoCorrespondente = blocoSelecionado ? s.bloco === blocoSelecionado : true;
+    return nomeCorrespondente && blocoCorrespondente;
   });
 
   const renderSala = ({ item }: { item: Sala }) => (
-    <View style={styles.sala}>
-      <Text style={styles.nome}>{item.nome}</Text>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => navigation.navigate('SalaDetalhes', { sala: item })}
+    >
+      <Text style={styles.titulo}>{item.nome}</Text>
+      <Text>Bloco: {item.bloco}</Text>
       <Text>Capacidade: {item.capacidade}</Text>
       <Text>Recursos: {item.recursos}</Text>
-      <Text>Bloco: {item.bloco}</Text>
-      <Text>Status: {item.status_limpeza}</Text>
-      <Text>Última Limpeza: {formatarData(item.ultima_limpeza_data_hora)}</Text>
-
-      {item.status_limpeza !== 'limpa' && (
-      <Button
-      title="Detalhes"
-       onPress={() => navigation.navigate('SalaDetalhes', { sala: item })}/>
-      )}
-    </View>
+    </TouchableOpacity>
   );
 
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#444" />
+        <ActivityIndicator size="large" color="#333" />
         <Text>Carregando salas...</Text>
       </View>
     );
   }
 
   return (
-    <View style={{ flex: 1 }}>
-      <ScrollView horizontal style={styles.filtros} showsHorizontalScrollIndicator={false}>
-        <Button
-          title="Todas"
-          onPress={() => setFiltroStatus('todos')}
-          color={filtroStatus === 'todos' ? '#007bff' : '#ccc'}
-        />
-        <Button
-          title="Limpas"
-          onPress={() => setFiltroStatus('limpa')}
-          color={filtroStatus === 'limpa' ? '#28a745' : '#ccc'}
-        />
-        <Button
-          title="Pendentes"
-          onPress={() => setFiltroStatus('pendente')}
-          color={filtroStatus === 'pendente' ? '#ffc107' : '#ccc'}
-        />
-      </ScrollView>
+    <View style={styles.container}>
+      <Text style={styles.header}>Buscar por nome</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Digite o nome da sala..."
+        value={busca}
+        onChangeText={setBusca}
+      />
 
-      <ScrollView horizontal style={styles.filtros} showsHorizontalScrollIndicator={false}>
-        <Button
-          title="Todos os Blocos"
-          onPress={() => setFiltroBloco('todos')}
-          color={filtroBloco === 'todos' ? '#17a2b8' : '#ccc'}
-        />
-        {blocosDisponiveis.map((bloco) => (
-          <Button
-            key={bloco}
-            title={bloco}
-            onPress={() => setFiltroBloco(bloco)}
-            color={filtroBloco === bloco ? '#17a2b8' : '#ccc'}
-          />
-        ))}
-      </ScrollView>
+      <Text style={styles.header}>Blocos</Text>
+      <FlatList
+        data={blocosDisponiveis}
+        horizontal
+        keyExtractor={(item) => item}
+        contentContainerStyle={styles.blocosContainer}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={[
+              styles.bloco,
+              blocoSelecionado === item && styles.blocoSelecionado,
+            ]}
+            onPress={() => setBlocoSelecionado(item === blocoSelecionado ? null : item)}
+          >
+            <Text style={styles.blocoTexto}>{item}</Text>
+          </TouchableOpacity>
+        )}
+      />
 
       <FlatList
         data={salasFiltradas}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderSala}
-        contentContainerStyle={styles.container}
-        refreshing={refreshing}
-        onRefresh={carregarSalas}
+        contentContainerStyle={styles.listaSalas}
       />
 
-      {/* Modal de Observação */}
-      <Modal visible={modalVisible} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>
-              Observação da limpeza ({salaSelecionada?.nome})
-            </Text>
-
-            <TextInput
-              placeholder="Digite uma observação (opcional)"
-              value={observacao}
-              onChangeText={setObservacao}
-              style={styles.modalInput}
-              multiline
-            />
-
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <Button title="Cancelar" onPress={() => setModalVisible(false)} color="#ccc" />
-              <Button title="Confirmar" onPress={confirmarLimpeza} color="#28a745" />
-              
-              <View style={{ marginTop: 20 }}>
-              <Button title="👤 Meu Perfil" onPress={() => navigation.navigate('TelaPerfil')} />
-              </View>
-
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <View style={{ marginTop: 20 }}>
+        <Button title="👤 Meu Perfil" onPress={() => navigation.navigate('TelaPerfil')} />
+        {user?.is_staff && (
+          <>
+            <Button title="⚙️ Gerenciar Salas" onPress={() => navigation.navigate('TelaAdminSalas')} />
+            <Button title="📜 Ver Histórico Geral" onPress={() => navigation.navigate('TelaHistorico')} />
+            <Button title="➕ Cadastrar Usuário" onPress={() => navigation.navigate('TelaCadastroUsuario')} />
+          </>
+        )}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 10 },
-  sala: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 10,
-    backgroundColor: '#f9f9f9',
-  },
-  nome: { fontWeight: 'bold', fontSize: 16, marginBottom: 5 },
+  container: { flex: 1, padding: 16 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  filtros: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    gap: 10,
-    paddingHorizontal: 10,
-    marginVertical: 5,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    backgroundColor: '#fff',
-    padding: 20,
-    width: '90%',
-    borderRadius: 10,
-    elevation: 5,
-  },
-  modalTitle: {
-    fontSize: 16,
+  header: {
+    fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 10,
   },
-  modalInput: {
-    height: 80,
+  input: {
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 8,
     padding: 10,
     marginBottom: 15,
-    textAlignVertical: 'top',
+  },
+  blocosContainer: {
+    marginBottom: 10,
+  },
+  bloco: {
+    backgroundColor: '#ddd',
+    padding: 10,
+    borderRadius: 20,
+    marginRight: 10,
+  },
+  blocoSelecionado: {
+    backgroundColor: '#007bff',
+  },
+  blocoTexto: {
+    color: '#000',
+  },
+  listaSalas: {
+    paddingBottom: 20,
+  },
+  card: {
+    backgroundColor: '#f2f2f2',
+    padding: 14,
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  titulo: {
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

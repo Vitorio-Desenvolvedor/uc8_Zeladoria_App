@@ -6,4 +6,5 @@ export type RootStackParamList = {
   FormSala: { sala?: any }; // aceita com ou sem sala
   TelaHistorico: undefined;
   TelaPerfil: undefined;
+  TelaCadastroUsuario: undefined;
 };

@@ -1,208 +1,120 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   Button,
-  Alert,
-  Modal,
   TextInput,
+  Alert,
   FlatList,
 } from 'react-native';
-import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
-import { AuthContext } from '../context/AuthContext';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import axios from 'axios';
+import { AuthContext } from '../context/AuthContext';
+import { RootStackParamList } from '../routes/types';
 
-type Sala = {
-  id: number;
-  nome: string;
-  capacidade: number;
-  recursos: string;
-  status_limpeza: string;
-  ultima_limpeza_data_hora: string | null;
-  bloco: string;
-};
+type SalaDetalhesRouteProp = RouteProp<RootStackParamList, 'SalaDetalhes'>;
 
-type Limpeza = {
-  id: number;
-  funcionario: string;
-  data_hora: string;
-  observacao?: string;
-};
-
-type RouteParams = {
-  SalaDetalhes: {
-    sala: Sala;
-  };
-};
-
-export default function SalaDetalhesScreen() {
-  const { token, user } = useContext(AuthContext);
-  const route = useRoute<RouteProp<RouteParams, 'SalaDetalhes'>>();
+export default function SalaDetalhes() {
+  const route = useRoute<SalaDetalhesRouteProp>();
   const navigation = useNavigation();
+  const { token, user } = useContext(AuthContext);
   const { sala } = route.params;
 
   const [observacao, setObservacao] = useState('');
-  const [modalVisible, setModalVisible] = useState(false);
-  const [atualizada, setAtualizada] = useState<Sala>(sala);
-  const [historico, setHistorico] = useState<Limpeza[]>([]);
+  const [historico, setHistorico] = useState<any[]>([]);
 
-  const formatarData = (dataUtc: string | null): string => {
-    if (!dataUtc) return 'Nunca limpa';
-    const data = new Date(dataUtc);
-    return data.toLocaleString('pt-BR');
-  };
+  useEffect(() => {
+    buscarHistorico();
+  }, []);
 
-  const confirmarLimpeza = async () => {
-    try {
-      await axios.post(
-        `http://127.0.0.1:8000/api/salas/${atualizada.id}/marcar_como_limpa/`,
-        { observacao },
-        {
-          headers: {
-            Authorization: `Token ${token}`,
-          },
-        }
-      );
-
-      Alert.alert('Sucesso', 'Sala marcada como limpa.');
-      setModalVisible(false);
-      setObservacao('');
-      setAtualizada({ ...atualizada, status_limpeza: 'limpa' });
-      carregarHistorico(); // atualizar histórico após limpeza
-    } catch (error: any) {
-      console.log(error.response?.data || error.message);
-      Alert.alert('Erro', 'Não foi possível marcar como limpa.');
-    }
-  };
-
-  const carregarHistorico = async () => {
+  const buscarHistorico = async () => {
     try {
       const response = await axios.get(
-        `http://127.0.0.1:8000/api/salas/${sala.id}/historico/`,
+        `http://127.0.0.1:8000/api/historico/sala/${sala.id}/`,
         {
-          headers: {
-            Authorization: `Token ${token}`,
-          },
+          headers: { Authorization: `Token ${token}` },
         }
       );
       setHistorico(response.data);
-    } catch (error: any) {
-      console.log(error.response?.data || error.message);
+    } catch (error) {
+      console.error('Erro ao carregar histórico:', error);
     }
   };
 
-  useEffect(() => {
-    if (user?.is_staff) {
-      carregarHistorico();
+  const marcarComoLimpa = async () => {
+    if (!observacao.trim()) {
+      Alert.alert('Erro', 'A observação é obrigatória!');
+      return;
     }
-  }, []);
+
+    try {
+      await axios.post(
+        'http://127.0.0.1:8000/api/limpezas/',
+        {
+          sala: sala.id,
+          observacao: observacao,
+        },
+        {
+          headers: { Authorization: `Token ${token}` },
+        }
+      );
+      Alert.alert('Sucesso', 'Limpeza registrada com sucesso!');
+      setObservacao('');
+      buscarHistorico();
+    } catch (error) {
+      console.error('Erro ao marcar limpeza:', error);
+      Alert.alert('Erro', 'Não foi possível registrar a limpeza.');
+    }
+  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.titulo}>{atualizada.nome}</Text>
-      <Text>Capacidade: {atualizada.capacidade}</Text>
-      <Text>Recursos: {atualizada.recursos}</Text>
-      <Text>Bloco: {atualizada.bloco}</Text>
-      <Text>Status: {atualizada.status_limpeza}</Text>
-      <Text>Última Limpeza: {formatarData(atualizada.ultima_limpeza_data_hora)}</Text>
+      <Text style={styles.titulo}>{sala.nome}</Text>
+      <Text>Capacidade: {sala.capacidade}</Text>
+      <Text>Recursos: {sala.recursos}</Text>
+      <Text>Bloco: {sala.bloco}</Text>
 
-      {atualizada.status_limpeza !== 'limpa' && (
-        <View style={{ marginTop: 20 }}>
-          <Button title="Marcar como limpa" onPress={() => setModalVisible(true)} />
-        </View>
-      )}
+      <TextInput
+        style={styles.input}
+        placeholder="Observação da limpeza..."
+        value={observacao}
+        onChangeText={setObservacao}
+      />
+      <Button title="Marcar como limpa" onPress={marcarComoLimpa} />
 
-      {/* HISTÓRICO PARA ADMIN */}
-      {user?.is_staff && (
-        <View style={{ marginTop: 30 }}>
-          <Text style={styles.historicoTitulo}>Histórico de Limpezas</Text>
+      <Text style={styles.subtitulo}>Histórico de Limpezas</Text>
 
-          {historico.length === 0 ? (
-            <Text>Nenhum registro de limpeza.</Text>
-          ) : (
-            <FlatList
-              data={historico}
-              keyExtractor={(item) => item.id.toString()}
-              renderItem={({ item }) => (
-                <View style={styles.historicoItem}>
-                  <Text style={{ fontWeight: 'bold' }}>
-                    {item.funcionario} - {new Date(item.data_hora).toLocaleString('pt-BR')}
-                  </Text>
-                  {item.observacao && <Text>Obs: {item.observacao}</Text>}
-                </View>
-              )}
-            />
-          )}
-        </View>
-      )}
-
-      {/* Modal de Observação */}
-      <Modal visible={modalVisible} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Observação da limpeza</Text>
-
-            <TextInput
-              placeholder="Digite uma observação (opcional)"
-              value={observacao}
-              onChangeText={setObservacao}
-              style={styles.modalInput}
-              multiline
-            />
-
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <Button title="Cancelar" onPress={() => setModalVisible(false)} color="#ccc" />
-              <Button title="Confirmar" onPress={confirmarLimpeza} color="#28a745" />
-            </View>
+      <FlatList
+        data={historico}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <Text>🧹 Por: {item.usuario}</Text>
+            <Text>📅 Em: {new Date(item.data).toLocaleString()}</Text>
+            <Text>📝 Obs: {item.observacao}</Text>
           </View>
-        </View>
-      </Modal>
+        )}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20 },
+  container: { flex: 1, padding: 16 },
   titulo: { fontSize: 20, fontWeight: 'bold', marginBottom: 10 },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    backgroundColor: '#fff',
-    padding: 20,
-    width: '90%',
-    borderRadius: 10,
-    elevation: 5,
-  },
-  modalTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  modalInput: {
-    height: 80,
+  subtitulo: { fontSize: 16, fontWeight: 'bold', marginTop: 20, marginBottom: 10 },
+  input: {
     borderWidth: 1,
     borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 15,
-    textAlignVertical: 'top',
-  },
-  historicoTitulo: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  historicoItem: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 10,
+    padding: 8,
     borderRadius: 8,
     marginBottom: 10,
-    backgroundColor: '#f0f0f0',
+  },
+  card: {
+    backgroundColor: '#eee',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 8,
   },
 });

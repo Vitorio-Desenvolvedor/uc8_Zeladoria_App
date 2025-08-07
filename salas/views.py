@@ -1,8 +1,13 @@
-from rest_framework import generics, permissions
-from .models import HistoricoLimpeza
-from .serializers import HistoricoLimpezaSerializer
+from rest_framework import viewsets, permissions
+from .models import Sala, RegistroLimpeza
+from .serializers import SalaSerializer, RegistroLimpezaSerializer
 
-class HistoricoLimpezaListView(generics.ListAPIView):
-    queryset = HistoricoLimpeza.objects.all().order_by('-data_limpeza')
-    serializer_class = HistoricoLimpezaSerializer
+class SalaViewSet(viewsets.ModelViewSet):
+    queryset = Sala.objects.all()
+    serializer_class = SalaSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class RegistroLimpezaViewSet(viewsets.ModelViewSet):
+    queryset = RegistroLimpeza.objects.all().order_by('-data_hora')
+    serializer_class = RegistroLimpezaSerializer
     permission_classes = [permissions.IsAuthenticated]
