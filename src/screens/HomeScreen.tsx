@@ -45,7 +45,12 @@ export default function HomeScreen() {
       const response = await axios.get('http://127.0.0.1:8000/api/salas/', {
         headers: { Authorization: `Token ${token}` },
       });
-
+      // Dentro do axios.post na LoginScreen
+      await AsyncStorage.setItem('auth_token', token);
+      navigation.reset({
+      index: 0,
+       routes: [{ name: 'Home' }],
+});
       setSalas(response.data);
 
       const blocosUnicos: string[] = [...new Set<string>(response.data.map((s: Sala) => s.bloco))];

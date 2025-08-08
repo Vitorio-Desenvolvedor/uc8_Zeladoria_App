@@ -1,73 +1,66 @@
-import React, { useState, useContext } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  Button,
-  Alert,
-  ActivityIndicator,
-} from 'react-native';
-import { AuthContext } from '../context/AuthContext';
+// src/screens/HomeScreen.tsx
+import React from "react";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
-export default function LoginScreen() {
-  const { login } = useContext(AuthContext);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [carregando, setCarregando] = useState(false);
+type RootStackParamList = {
+  Login: undefined;
+  Home: undefined;
+};
 
-  const fazerLogin = async () => {
-    if (!username || !password) {
-      Alert.alert('Erro', 'Preencha todos os campos!');
-      return;
-    }
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-    setCarregando(true);
+export default function HomeScreen() {
+  const navigation = useNavigation<NavigationProp>();
+
+  const handleLogout = async () => {
     try {
-      await login(username, password);
+      // Remove o token do armazenamento local
+      await AsyncStorage.removeItem("authToken");
+
+      // Redireciona para a tela de login
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Login" }],
+      });
     } catch (error) {
-      Alert.alert('Erro', 'Usuário ou senha inválidos!');
-    } finally {
-      setCarregando(false);
+      console.error("Erro ao fazer logout:", error);
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.titulo}>Zeladoria App</Text>
+      <Text style={styles.title}>Bem-vindo à Home!</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Usuário"
-        value={username}
-        onChangeText={setUsername}
-        autoCapitalize="none"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Senha"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-
-      {carregando ? (
-        <ActivityIndicator size="large" color="#007bff" />
-      ) : (
-        <Button title="Entrar" onPress={fazerLogin} />
-      )}
+      <TouchableOpacity style={styles.button} onPress={handleLogout}>
+        <Text style={styles.buttonText}>Sair</Text>
+      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 20 },
-  titulo: { fontSize: 24, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 10,
-    marginBottom: 15,
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F5F5F5",
+  },
+  title: {
+    fontSize: 24,
+    marginBottom: 20,
+    fontWeight: "bold",
+  },
+  button: {
+    backgroundColor: "#FF3B30",
+    padding: 12,
     borderRadius: 8,
+  },
+  buttonText: {
+    color: "#FFF",
+    fontWeight: "bold",
+    fontSize: 16,
   },
 });
