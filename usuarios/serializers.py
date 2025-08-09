@@ -2,6 +2,18 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from rest_framework import serializers
+from .models import Limpeza
+
+class LimpezaSerializer(serializers.ModelSerializer):
+    usuario_nome = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Limpeza
+        fields = ['id', 'sala', 'data', 'observacao', 'usuario', 'usuario_nome']
+
+    def get_usuario_nome(self, obj):
+        return obj.usuario.username if obj.usuario else None
 
 User = get_user_model()
 

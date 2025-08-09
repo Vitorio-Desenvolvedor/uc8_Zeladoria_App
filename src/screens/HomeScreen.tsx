@@ -1,89 +1,76 @@
-import React, { useEffect, useState, useContext } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  TouchableOpacity,
-  ActivityIndicator,
-  Button,
-  TextInput,
-} from 'react-native';
-import axios from 'axios';
-import { AuthContext } from '../context/AuthContext';
-import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../routes/types';
+import React, { useEffect, useState } from "react";
+import { View, Text, Button, FlatList, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
+import { useNavigation } from "@react-navigation/native";
 
-type Sala = {
+// Definindo o tipo Sala
+interface Sala {
   id: number;
   nome: string;
-  capacidade: number;
-  recursos: string;
-  bloco: string;
-};
-
-type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
+  status: string;
+}
 
 export default function HomeScreen() {
-  const { token, user } = useContext(AuthContext);
-  const navigation = useNavigation<NavigationProp>();
-
-  const [salas, setSalas] = useState<Sala[]>([]);
-  const [blocoSelecionado, setBlocoSelecionado] = useState<string | null>(null);
-  const [blocosDisponiveis, setBlocosDisponiveis] = useState<string[]>([]);
+  const navigation = useNavigation();
+  const [salas, setSalas] = useState<Sala[]>([]); // Tipagem correta
   const [loading, setLoading] = useState(true);
-  const [busca, setBusca] = useState<string>(''); // estado da busca por nome
 
   useEffect(() => {
-    buscarSalas();
+    const fetchSalas = async () => {
+      try {
+        const token = await AsyncStorage.getItem("token");
+        if (!token) {
+          navigation.navigate("Login" as never);
+          return;
+        }
+
+        const response = await axios.get<Sala[]>("http://192.168.15.3:8000/salas/", {
+          headers: { Authorization: `Token ${token}` },
+        });
+
+        setSalas(response.data);
+      } catch (error) {
+        console.error(error);
+        Alert.alert("Erro", "Não foi possível carregar as salas.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSalas();
   }, []);
 
-  const buscarSalas = async () => {
+  const marcarComoLimpa = async (salaId: number) => {
     try {
-      setLoading(true);
-      const response = await axios.get('http://127.0.0.1:8000/api/salas/', {
-        headers: { Authorization: `Token ${token}` },
-      });
-      // Dentro do axios.post na LoginScreen
-      await AsyncStorage.setItem('auth_token', token);
-      navigation.reset({
-      index: 0,
-       routes: [{ name: 'Home' }],
-});
-      setSalas(response.data);
+      const token = await AsyncStorage.getItem("token");
+      await axios.post(
+        `http://192.168.15.3:8000/salas/${salaId}/limpar/`,
+        {},
+        { headers: { Authorization: `Token ${token}` } }
+      );
 
-      const blocosUnicos: string[] = [...new Set<string>(response.data.map((s: Sala) => s.bloco))];
-      setBlocosDisponiveis(blocosUnicos);
-    } catch (error: any) {
-      console.error('Erro ao buscar salas:', error.message);
-    } finally {
-      setLoading(false);
+      Alert.alert("Sucesso", "Sala marcada como limpa!");
+
+      setSalas((prev) =>
+        prev.map((sala) =>
+          sala.id === salaId ? { ...sala, status: "Limpa" } : sala
+        )
+      );
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Erro", "Não foi possível marcar como limpa.");
     }
   };
 
-  const salasFiltradas = salas.filter((s) => {
-    const nomeCorrespondente = s.nome.toLowerCase().includes(busca.toLowerCase());
-    const blocoCorrespondente = blocoSelecionado ? s.bloco === blocoSelecionado : true;
-    return nomeCorrespondente && blocoCorrespondente;
-  });
-
-  const renderSala = ({ item }: { item: Sala }) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() => navigation.navigate('SalaDetalhes', { sala: item })}
-    >
-      <Text style={styles.titulo}>{item.nome}</Text>
-      <Text>Bloco: {item.bloco}</Text>
-      <Text>Capacidade: {item.capacidade}</Text>
-      <Text>Recursos: {item.recursos}</Text>
-    </TouchableOpacity>
-  );
+  const logout = async () => {
+    await AsyncStorage.removeItem("token");
+    navigation.navigate("Login" as never);
+  };
 
   if (loading) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#333" />
+      <View style={styles.container}>
         <Text>Carregando salas...</Text>
       </View>
     );
@@ -91,95 +78,59 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Buscar por nome</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Digite o nome da sala..."
-        value={busca}
-        onChangeText={setBusca}
-      />
-
-      <Text style={styles.header}>Blocos</Text>
-      <FlatList
-        data={blocosDisponiveis}
-        horizontal
-        keyExtractor={(item) => item}
-        contentContainerStyle={styles.blocosContainer}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[
-              styles.bloco,
-              blocoSelecionado === item && styles.blocoSelecionado,
-            ]}
-            onPress={() => setBlocoSelecionado(item === blocoSelecionado ? null : item)}
-          >
-            <Text style={styles.blocoTexto}>{item}</Text>
-          </TouchableOpacity>
-        )}
-      />
+      <Text style={styles.titulo}>Lista de Salas</Text>
 
       <FlatList
-        data={salasFiltradas}
+        data={salas}
         keyExtractor={(item) => item.id.toString()}
-        renderItem={renderSala}
-        contentContainerStyle={styles.listaSalas}
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <Text style={styles.nome}>{item.nome}</Text>
+            <Text>Status: {item.status}</Text>
+
+            <TouchableOpacity
+              style={styles.botao}
+              onPress={() => marcarComoLimpa(item.id)}
+            >
+              <Text style={styles.textoBotao}>Marcar como Limpa</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       />
 
-      <View style={{ marginTop: 20 }}>
-        <Button title="👤 Meu Perfil" onPress={() => navigation.navigate('TelaPerfil')} />
-        {user?.is_staff && (
-          <>
-            <Button title="⚙️ Gerenciar Salas" onPress={() => navigation.navigate('TelaAdminSalas')} />
-            <Button title="📜 Ver Histórico Geral" onPress={() => navigation.navigate('TelaHistorico')} />
-            <Button title="➕ Cadastrar Usuário" onPress={() => navigation.navigate('TelaCadastroUsuario')} />
-          </>
-        )}
-      </View>
+      <TouchableOpacity
+        style={[styles.botao, { backgroundColor: "orange" }]}
+        onPress={() => navigation.navigate("HistoricoLimpezas" as never)}
+      >
+        <Text style={styles.textoBotao}>Ver Histórico</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.botao, { backgroundColor: "red" }]}
+        onPress={logout}
+      >
+        <Text style={styles.textoBotao}>Sair</Text>
+      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16 },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 15,
-  },
-  blocosContainer: {
-    marginBottom: 10,
-  },
-  bloco: {
-    backgroundColor: '#ddd',
-    padding: 10,
-    borderRadius: 20,
-    marginRight: 10,
-  },
-  blocoSelecionado: {
-    backgroundColor: '#007bff',
-  },
-  blocoTexto: {
-    color: '#000',
-  },
-  listaSalas: {
-    paddingBottom: 20,
-  },
+  container: { flex: 1, padding: 20, backgroundColor: "#fff" },
+  titulo: { fontSize: 22, fontWeight: "bold", marginBottom: 20 },
   card: {
-    backgroundColor: '#f2f2f2',
-    padding: 14,
+    padding: 15,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: "#ccc",
     borderRadius: 8,
-    marginBottom: 10,
   },
-  titulo: {
-    fontSize: 16,
-    fontWeight: 'bold',
+  nome: { fontSize: 18, fontWeight: "bold" },
+  botao: {
+    backgroundColor: "green",
+    padding: 10,
+    marginTop: 10,
+    borderRadius: 5,
   },
+  textoBotao: { color: "#fff", textAlign: "center", fontWeight: "bold" },
 });
