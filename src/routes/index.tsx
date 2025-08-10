@@ -11,7 +11,6 @@ import TelaHistorico from '../screens/TelaHistorico';
 import FormSala from '../screens/FormSala';
 import TelaCadastroUsuario from '../screens/TelaCadastroUsuario';
 
-
 import { AuthContext } from '../context/AuthContext';
 import { RootStackParamList } from './types';
 
