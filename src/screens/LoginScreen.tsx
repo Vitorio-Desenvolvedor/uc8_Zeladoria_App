@@ -1,66 +1,66 @@
-// src/screens/HomeScreen.tsx
-import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import { View, Text, TextInput, Button, StyleSheet, Alert } from "react-native";
+import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../../App";
+import { useNavigation } from "@react-navigation/native";
 
-type RootStackParamList = {
-  Login: undefined;
-  Home: undefined;
-};
+type LoginScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  "Login">;
 
-type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+export default function LoginScreen() {
+  const navigation = useNavigation<LoginScreenNavigationProp>();
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
 
-export default function HomeScreen() {
-  const navigation = useNavigation<NavigationProp>();
-
-  const handleLogout = async () => {
+  const handleLogin = async () => {
     try {
-      // Remove o token do armazenamento local
-      await AsyncStorage.removeItem("authToken");
+      const response = await axios.post(
+        "http://192.168.15.3:8000/auth/token/login/",
+        {
+          username,
+          password,
+        }
+      );
 
-      // Redireciona para a tela de login
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "Login" }],
-      });
+      await AsyncStorage.setItem("token", response.data.auth_token);
+      navigation.navigate("Home");
     } catch (error) {
-      console.error("Erro ao fazer logout:", error);
+      Alert.alert("Erro", "Usuário ou senha inválidos");
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Bem-vindo à Home!</Text>
-
-      <TouchableOpacity style={styles.button} onPress={handleLogout}>
-        <Text style={styles.buttonText}>Sair</Text>
-      </TouchableOpacity>
+      <Text style={styles.title}>Login</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Usuário"
+        value={username}
+        onChangeText={setUsername}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Senha"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+      />
+      <Button title="Entrar" onPress={handleLogin} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#F5F5F5",
-  },
-  title: {
-    fontSize: 24,
-    marginBottom: 20,
-    fontWeight: "bold",
-  },
-  button: {
-    backgroundColor: "#FF3B30",
-    padding: 12,
-    borderRadius: 8,
-  },
-  buttonText: {
-    color: "#FFF",
-    fontWeight: "bold",
-    fontSize: 16,
+  container: { flex: 1, justifyContent: "center", padding: 20 },
+  title: { fontSize: 24, marginBottom: 20, textAlign: "center" },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    padding: 10,
+    marginBottom: 15,
+    borderRadius: 5,
   },
 });

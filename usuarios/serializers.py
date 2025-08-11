@@ -36,3 +36,9 @@ class UserCreateSerializer(serializers.ModelSerializer):
             password=validated_data['password']
         )
         return user
+    
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10  # Quantos registros por página
+}
+

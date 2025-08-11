@@ -3,9 +3,36 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny 
 from rest_framework import viewsets
+
 from .models import Limpeza
 from .serializers import LimpezaSerializer
 from .serializers import UserCreateSerializer
+
+from rest_framework.permissions import IsAdminUser
+from rest_framework import generics
+from .models import RegistroLimpeza
+from .serializers import RegistroLimpezaSerializer
+
+class HistoricoLimpezasList(generics.ListAPIView):
+    serializer_class = RegistroLimpezaSerializer
+
+    def get_queryset(self):
+        queryset = RegistroLimpeza.objects.all()
+        sala = self.request.query_params.get('sala')
+        data = self.request.query_params.get('data')
+
+        if sala:
+            queryset = queryset.filter(sala__nome__icontains=sala)
+        if data:
+            queryset = queryset.filter(data__date=data)
+
+        return queryset
+
+class HistoricoLimpezasView(generics.ListAPIView):
+    queryset = RegistroLimpeza.objects.all()
+    serializer_class = RegistroLimpezaSerializer
+    permission_classes = [IsAdminUser]
+
 
 class LimpezaViewSet(viewsets.ModelViewSet):
     queryset = Limpeza.objects.all()
