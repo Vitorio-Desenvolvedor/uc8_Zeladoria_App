@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'salas',
     'usuarios',
     'rest_framework',
+    
 ]
 
 # Middlewares

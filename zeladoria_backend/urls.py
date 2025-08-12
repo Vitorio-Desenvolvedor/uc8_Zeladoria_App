@@ -8,5 +8,6 @@ urlpatterns = [
     path('auth/', include('djoser.urls')),
     path('auth/', include('djoser.urls.authtoken')),
     path('usuarios/', include('usuarios.urls')),
+    path('api/', include('salas.urls')),
 
 ]

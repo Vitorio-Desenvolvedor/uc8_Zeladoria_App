@@ -23,6 +23,7 @@ export default function App() {
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="RegistrarLimpeza" component={RegistrarLimpezaScreen} />
         <Stack.Screen name="HistoricoLimpezas" component={HistoricoLimpezasScreen} />
+        <Stack.Screen name="HistoricoLimpezas" component={HistoricoLimpezasScreen} options={{ title: "Histórico" }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

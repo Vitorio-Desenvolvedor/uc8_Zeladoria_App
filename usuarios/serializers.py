@@ -5,6 +5,14 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from .models import Limpeza
 
+from django.contrib.auth import get_user_model
+from rest_framework import serializers
+
+class UserDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["id", "username", "email", "is_staff"]
+
 class LimpezaSerializer(serializers.ModelSerializer):
     usuario_nome = serializers.SerializerMethodField()
 

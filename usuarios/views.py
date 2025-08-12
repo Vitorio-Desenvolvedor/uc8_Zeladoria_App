@@ -13,6 +13,7 @@ from rest_framework import generics
 from .models import RegistroLimpeza
 from .serializers import RegistroLimpezaSerializer
 
+
 class RegistroLimpezaViewSet(viewsets.ModelViewSet):
     queryset = RegistroLimpeza.objects.all().order_by('-data')
     serializer_class = RegistroLimpezaSerializer
@@ -21,6 +22,7 @@ class RegistroLimpezaViewSet(viewsets.ModelViewSet):
         if self.request.method in ['PUT', 'PATCH', 'DELETE']:
             return [permissions.IsAdminUser()]
         return [permissions.IsAuthenticated()]
+    
 class HistoricoLimpezasList(generics.ListAPIView):
     serializer_class = RegistroLimpezaSerializer
 

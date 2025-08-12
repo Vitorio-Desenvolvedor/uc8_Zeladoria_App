@@ -1,132 +1,52 @@
-import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  Alert,
-  TextInput,
-  Button,
-  ActivityIndicator,
-} from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, { useState } from "react";
+import { View, Text, TextInput, Button, StyleSheet, Alert } from "react-native";
 import axios from "axios";
+import { useAuth } from "../context/AuthContext";
+import { RouteProp, useRoute } from "@react-navigation/native";
 
-type RegistroLimpeza = {
-  id: number;
-  sala_nome: string;
-  usuario: string;
-  observacao: string;
-  data: string;
-};
+type RegistroRouteProps = RouteProp<{ params: { salaId: number } }, "params">;
 
-export default function HistoricoLimpezasScreen() {
-  const [historico, setHistorico] = useState<RegistroLimpeza[]>([]);
-  const [filtroSala, setFiltroSala] = useState("");
-  const [filtroData, setFiltroData] = useState("");
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
+export default function RegistroLimpezaScreen() {
+  const route = useRoute<RegistroRouteProps>();
+  const { token } = useAuth();
+  const [observacao, setObservacao] = useState("");
 
-  const carregarHistorico = async (novaPagina = 1) => {
-    if (loading) return;
-    setLoading(true);
-
-    try {
-      const token = await AsyncStorage.getItem("token");
-
-      let url = `http://192.168.15.3:8000/historico-limpezas/?page=${novaPagina}`;
-
-      if (filtroSala) url += `&sala=${encodeURIComponent(filtroSala)}`;
-      if (filtroData) url += `&data=${encodeURIComponent(filtroData)}`;
-
-      const response = await axios.get(url, {
-        headers: { Authorization: `Token ${token}` },
+  const registrarLimpeza = () => {
+    axios
+      .post(
+        "http://192.168.15.3:8000/api/limpezas/",
+        {
+          sala: route.params.salaId,
+          observacao,
+        },
+        {
+          headers: { Authorization: `Token ${token}` },
+        }
+      )
+      .then(() => {
+        Alert.alert("Sucesso", "Limpeza registrada!");
+      })
+      .catch(() => {
+        Alert.alert("Erro", "Não foi possível registrar a limpeza.");
       });
-
-      if (novaPagina === 1) {
-        setHistorico(response.data.results);
-      } else {
-        setHistorico((prev) => [...prev, ...response.data.results]);
-      }
-
-      setHasMore(response.data.next !== null);
-      setPage(novaPagina);
-    } catch (error) {
-      Alert.alert("Erro", "Não foi possível carregar o histórico");
-    } finally {
-      setLoading(false);
-    }
   };
-
-  useEffect(() => {
-    carregarHistorico();
-  }, []);
-
-  const carregarMais = () => {
-    if (hasMore && !loading) {
-      carregarHistorico(page + 1);
-    }
-  };
-
-  const renderItem = ({ item }: { item: RegistroLimpeza }) => (
-    <View style={styles.item}>
-      <Text style={styles.sala}>{item.sala_nome}</Text>
-      <Text style={styles.info}>Usuário: {item.usuario}</Text>
-      <Text style={styles.info}>Observação: {item.observacao}</Text>
-      <Text style={styles.data}>{new Date(item.data).toLocaleString()}</Text>
-    </View>
-  );
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Histórico de Limpezas</Text>
-
+      <Text style={styles.title}>Registrar Limpeza</Text>
       <TextInput
         style={styles.input}
-        placeholder="Filtrar por sala"
-        value={filtroSala}
-        onChangeText={setFiltroSala}
+        placeholder="Observação"
+        value={observacao}
+        onChangeText={setObservacao}
       />
-      <TextInput
-        style={styles.input}
-        placeholder="Filtrar por data (AAAA-MM-DD)"
-        value={filtroData}
-        onChangeText={setFiltroData}
-      />
-
-      <Button title="Aplicar Filtros" onPress={() => carregarHistorico(1)} />
-
-      <FlatList
-        data={historico}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={renderItem}
-        onEndReached={carregarMais}
-        onEndReachedThreshold={0.5}
-        ListFooterComponent={loading ? <ActivityIndicator size="large" /> : null}
-        style={{ marginTop: 20 }}
-      />
+      <Button title="Salvar" onPress={registrarLimpeza} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20 },
-  title: {
-    fontSize: 22,
-    fontWeight: "bold",
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 10,
-    marginBottom: 10,
-    borderRadius: 5,
-  },
-  item: { padding: 15, borderBottomWidth: 1, borderBottomColor: "#ccc" },
-  sala: { fontSize: 18, fontWeight: "bold" },
-  info: { fontSize: 14 },
-  data: { fontSize: 12, color: "#666", marginTop: 5 },
+  title: { fontSize: 22, fontWeight: "bold", marginBottom: 20 },
+  input: { borderWidth: 1, borderColor: "#ccc", padding: 10, marginBottom: 20, borderRadius: 5 },
 });
