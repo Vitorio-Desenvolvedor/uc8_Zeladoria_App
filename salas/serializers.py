@@ -1,13 +1,15 @@
 from rest_framework import serializers
-from .models import Sala, Limpeza
+from .models import Sala, RegistroLimpeza
 
 class SalaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sala
-        fields = '__all__'
+        fields = ['id', 'nome', 'descricao', 'status']
 
-class LimpezaSerializer(serializers.ModelSerializer):
+class RegistroLimpezaSerializer(serializers.ModelSerializer):
+    sala = serializers.CharField(source='sala.nome', read_only=True)
+    usuario = serializers.CharField(source='usuario.username', read_only=True)
+
     class Meta:
-        model = Limpeza
-        fields = '__all__'
-        read_only_fields = ['usuario', 'data_limpeza']
+        model = RegistroLimpeza
+        fields = ['id', 'sala', 'usuario', 'observacao', 'data_limpeza']

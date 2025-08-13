@@ -5,6 +5,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import LoginScreen from "./src/screens/LoginScreen";
 import HomeScreen from "./src/screens/HomeScreen";
 import HistoricoLimpezasScreen from "./src/screens/HistoricoLimpezasScreen";
+import HistoricoScreen from './src/screens/HistoricoScreen';
+import AdminSalasScreen from './src/screens/AdminSalasScreen';
+import HistoricoLimpezas from './src/screens/HistoricoLimpezasScreen';
+
+
 
 export type RootStackParamList = {
   Login: undefined;
@@ -57,6 +62,15 @@ export default function App() {
           />
         ) : (
           <>
+             <Stack.Screen
+              name="HistoricoLimpezas" 
+              component={HistoricoLimpezas} />
+            <Stack.Screen
+              name="Historico"
+              component={HistoricoScreen} />
+            <Stack.Screen
+              name="AdminSalas"
+              component={AdminSalasScreen} />
             <Stack.Screen
               name="Home"
               component={HomeScreen}

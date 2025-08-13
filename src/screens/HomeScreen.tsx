@@ -1,60 +1,74 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, Button, StyleSheet } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../../App";
+import React, { useEffect, useState } from 'react';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../routes/types';
 
-type HomeScreenNavigationProp = NativeStackNavigationProp<
-  RootStackParamList,
-  "Home"
->;
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
 export default function HomeScreen() {
-  const navigation = useNavigation<HomeScreenNavigationProp>();
-  const [isAdmin, setIsAdmin] = useState(false);
+  const navigation = useNavigation<NavigationProp>();
+  const [salas, setSalas] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function getAdminStatus() {
-      const adminStatus = await AsyncStorage.getItem("isAdmin");
-      setIsAdmin(adminStatus === "true");
-    }
-    getAdminStatus();
+    const fetchSalas = async () => {
+      try {
+        const token = await AsyncStorage.getItem('token');
+        const response = await axios.get('http://192.168.15.3:8000/salas/', {
+          headers: { Authorization: `Token ${token}` },
+        });
+        setSalas(response.data);
+      } catch (error) {
+        console.error('Erro ao buscar salas:', error);
+        Alert.alert('Erro', 'Não foi possível carregar as salas.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSalas();
   }, []);
 
-  const handleLogout = async () => {
-    await AsyncStorage.clear();
-    navigation.replace("Login");
+  const abrirDetalhesSala = (id: number) => {
+    navigation.navigate('DetalhesSala', { salaId: id });
   };
+
+  if (loading) {
+    return <ActivityIndicator size="large" color="#000" style={{ marginTop: 20 }} />;
+  }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Bem-vindo ao Sistema de Zeladoria</Text>
-
-      {isAdmin && (
-        <Button
-          title="Ver Histórico de Limpezas"
-          onPress={() => navigation.navigate("HistoricoLimpezas")}
-        />
-      )}
-
-      <View style={{ marginTop: 20 }}>
-        <Button title="Sair" onPress={handleLogout} color="red" />
-      </View>
+      <Text style={styles.title}>Salas</Text>
+      <FlatList
+        data={salas}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={styles.salaItem}
+            onPress={() => abrirDetalhesSala(item.id)}
+          >
+            <Text style={styles.salaNome}>{item.nome}</Text>
+            <Text>Status: {item.status}</Text>
+          </TouchableOpacity>
+        )}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#fff",
+  container: { flex: 1, padding: 16 },
+  title: { fontSize: 22, fontWeight: 'bold', marginBottom: 15 },
+  salaItem: {
+    padding: 15,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    marginBottom: 10,
+    borderRadius: 5,
   },
-  title: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 20,
-  },
+  salaNome: { fontSize: 18, fontWeight: 'bold' },
 });

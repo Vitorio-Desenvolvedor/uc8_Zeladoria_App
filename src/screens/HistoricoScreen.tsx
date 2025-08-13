@@ -1,23 +1,30 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, ActivityIndicator, Alert } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function HistoricoLimpezas() {
-  const [historico, setHistorico] = useState<any[]>([]);
+interface RegistroLimpeza {
+  id: number;
+  sala: string;
+  usuario: string;
+  observacao: string;
+  data_limpeza: string;
+}
+
+export default function HistoricoScreen() {
+  const [historico, setHistorico] = useState<RegistroLimpeza[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchHistorico = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const response = await axios.get('http://192.168.15.3:8000/limpezas/', {
+        const response = await axios.get('http://192.168.15.3:8000/api/salas/historico/', {
           headers: { Authorization: `Token ${token}` },
         });
         setHistorico(response.data);
       } catch (error) {
         console.error('Erro ao buscar histórico:', error);
-        Alert.alert('Erro', 'Não foi possível carregar o histórico.');
       } finally {
         setLoading(false);
       }
@@ -38,28 +45,26 @@ export default function HistoricoLimpezas() {
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <View style={styles.card}>
-            <Text style={styles.sala}>Sala: {item.sala_nome}</Text>
-            <Text>Data: {new Date(item.data).toLocaleString()}</Text>
-            <Text>Observação: {item.observacao || 'Sem observações'}</Text>
-            <Text>Responsável: {item.responsavel_nome}</Text>
+            <Text style={styles.sala}>{item.sala}</Text>
+            <Text>Usuário: {item.usuario}</Text>
+            <Text>Observação: {item.observacao || 'Nenhuma'}</Text>
+            <Text>Data: {new Date(item.data_limpeza).toLocaleString()}</Text>
           </View>
         )}
-        ListEmptyComponent={<Text>Nenhum registro encontrado.</Text>}
       />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: '#fff' },
-  title: { fontSize: 22, fontWeight: 'bold', marginBottom: 15 },
+  container: { flex: 1, padding: 16 },
+  title: { fontSize: 20, fontWeight: 'bold', marginBottom: 16 },
   card: {
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    marginBottom: 10,
     backgroundColor: '#f9f9f9',
+    padding: 12,
+    marginBottom: 10,
+    borderRadius: 8,
+    elevation: 2,
   },
-  sala: { fontSize: 16, fontWeight: 'bold' },
+  sala: { fontWeight: 'bold', fontSize: 16 },
 });

@@ -1,8 +1,11 @@
-from rest_framework import routers
-from .views import SalaViewSet, LimpezaViewSet
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import SalaViewSet, RegistroLimpezaViewSet
 
-router = routers.DefaultRouter()
-router.register(r'salas', SalaViewSet)
-router.register(r'limpezas', LimpezaViewSet)
+router = DefaultRouter()
+router.register(r'salas', SalaViewSet, basename='salas')
+router.register(r'historico', RegistroLimpezaViewSet, basename='historico')
 
-urlpatterns = router.urls
+urlpatterns = [
+    path('', include(router.urls)),
+]

@@ -7,5 +7,8 @@ export type RootStackParamList = {
   TelaHistorico: undefined;
   TelaPerfil: undefined;
   TelaCadastroUsuario: undefined;
-  HistoricoLimpezas: { salaId: number }; 
+  DetalhesSala: { sala: { id: number; nome: string; status: string } };
+  RegistroLimpeza: { salaId: number };
+  HistoricoLimpezas: undefined;
+  AdminSalas: undefined;   
 };
