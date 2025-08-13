@@ -1,69 +1,33 @@
-import React, { useEffect, useState, useContext } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Button,
-  TextInput,
-  Alert,
-  FlatList,
-} from 'react-native';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, Button, Alert, StyleSheet } from 'react-native';
 import axios from 'axios';
-import { AuthContext } from '../context/AuthContext';
-import { RootStackParamList } from '../routes/types';
+import { useRoute, useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-type SalaDetalhesRouteProp = RouteProp<RootStackParamList, 'SalaDetalhes'>;
-
-export default function SalaDetalhes() {
-  const route = useRoute<SalaDetalhesRouteProp>();
+export default function DetalhesSalaScreen() {
+  const route = useRoute();
   const navigation = useNavigation();
-  const { token, user } = useContext(AuthContext);
   const { sala } = route.params;
-
   const [observacao, setObservacao] = useState('');
-  const [historico, setHistorico] = useState<any[]>([]);
-
-  useEffect(() => {
-    buscarHistorico();
-  }, []);
-
-  const buscarHistorico = async () => {
-    try {
-      const response = await axios.get(
-        `http://127.0.0.1:8000/api/historico/sala/${sala.id}/`,
-        {
-          headers: { Authorization: `Token ${token}` },
-        }
-      );
-      setHistorico(response.data);
-    } catch (error) {
-      console.error('Erro ao carregar histórico:', error);
-    }
-  };
 
   const marcarComoLimpa = async () => {
-    if (!observacao.trim()) {
-      Alert.alert('Erro', 'A observação é obrigatória!');
-      return;
-    }
-
     try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        Alert.alert('Erro', 'Você precisa estar logado.');
+        return;
+      }
+
       await axios.post(
-        'http://127.0.0.1:8000/api/limpezas/',
-        {
-          sala: sala.id,
-          observacao: observacao,
-        },
-        {
-          headers: { Authorization: `Token ${token}` },
-        }
+        'http://192.168.15.3:8000/api/limpezas/',
+        { sala: sala.id, observacao },
+        { headers: { Authorization: `Token ${token}` } }
       );
-      Alert.alert('Sucesso', 'Limpeza registrada com sucesso!');
-      setObservacao('');
-      buscarHistorico();
+
+      Alert.alert('Sucesso', 'Sala marcada como limpa.');
+      navigation.goBack();
     } catch (error) {
-      console.error('Erro ao marcar limpeza:', error);
+      console.error(error);
       Alert.alert('Erro', 'Não foi possível registrar a limpeza.');
     }
   };
@@ -71,50 +35,29 @@ export default function SalaDetalhes() {
   return (
     <View style={styles.container}>
       <Text style={styles.titulo}>{sala.nome}</Text>
-      <Text>Capacidade: {sala.capacidade}</Text>
-      <Text>Recursos: {sala.recursos}</Text>
-      <Text>Bloco: {sala.bloco}</Text>
+      <Text style={styles.descricao}>{sala.descricao}</Text>
 
       <TextInput
         style={styles.input}
-        placeholder="Observação da limpeza..."
+        placeholder="Observação (opcional)"
         value={observacao}
         onChangeText={setObservacao}
       />
+
       <Button title="Marcar como limpa" onPress={marcarComoLimpa} />
-
-      <Text style={styles.subtitulo}>Histórico de Limpezas</Text>
-
-      <FlatList
-        data={historico}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Text>🧹 Por: {item.usuario}</Text>
-            <Text>📅 Em: {new Date(item.data).toLocaleString()}</Text>
-            <Text>📝 Obs: {item.observacao}</Text>
-          </View>
-        )}
-      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16 },
-  titulo: { fontSize: 20, fontWeight: 'bold', marginBottom: 10 },
-  subtitulo: { fontSize: 16, fontWeight: 'bold', marginTop: 20, marginBottom: 10 },
+  container: { flex: 1, padding: 20, backgroundColor: '#fff' },
+  titulo: { fontSize: 22, fontWeight: 'bold', marginBottom: 10 },
+  descricao: { fontSize: 16, marginBottom: 20 },
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
-    padding: 8,
-    borderRadius: 8,
-    marginBottom: 10,
-  },
-  card: {
-    backgroundColor: '#eee',
     padding: 10,
-    borderRadius: 8,
-    marginBottom: 8,
+    marginBottom: 20,
+    borderRadius: 5,
   },
 });

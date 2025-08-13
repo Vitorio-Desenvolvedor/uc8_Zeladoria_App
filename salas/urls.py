@@ -1,12 +1,8 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import SalaViewSet, LimpezaViewSet, HistoricoList
+from rest_framework import routers
+from .views import SalaViewSet, LimpezaViewSet
 
-router = DefaultRouter()
-router.register(r'salas', SalaViewSet, basename='salas')
-router.register(r'limpezas', LimpezaViewSet, basename='limpezas')
+router = routers.DefaultRouter()
+router.register(r'salas', SalaViewSet)
+router.register(r'limpezas', LimpezaViewSet)
 
-urlpatterns = [
-    path('', include(router.urls)),
-    path('historico/', HistoricoList.as_view(), name='historico-limpezas'),  # /api/historico/
-]
+urlpatterns = router.urls

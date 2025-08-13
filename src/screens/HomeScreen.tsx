@@ -1,29 +1,46 @@
 import React, { useEffect, useState } from "react";
-import { View, Button, StyleSheet } from "react-native";
+import { View, Text, Button, StyleSheet } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../../App";
+
+type HomeScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  "Home"
+>;
 
 export default function HomeScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<HomeScreenNavigationProp>();
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    AsyncStorage.getItem("isAdmin").then((value) => {
-      setIsAdmin(value === "true");
-    });
+    async function getAdminStatus() {
+      const adminStatus = await AsyncStorage.getItem("isAdmin");
+      setIsAdmin(adminStatus === "true");
+    }
+    getAdminStatus();
   }, []);
+
+  const handleLogout = async () => {
+    await AsyncStorage.clear();
+    navigation.replace("Login");
+  };
 
   return (
     <View style={styles.container}>
-      <Button title="Registrar Limpeza" onPress={() => navigation.navigate("RegistrarLimpeza")} />
+      <Text style={styles.title}>Bem-vindo ao Sistema de Zeladoria</Text>
 
-      {/* Botão visível somente para administradores */}
       {isAdmin && (
         <Button
-          title="Histórico de Limpezas"
+          title="Ver Histórico de Limpezas"
           onPress={() => navigation.navigate("HistoricoLimpezas")}
         />
       )}
+
+      <View style={{ marginTop: 20 }}>
+        <Button title="Sair" onPress={handleLogout} color="red" />
+      </View>
     </View>
   );
 }
@@ -32,6 +49,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
-    padding: 16,
+    alignItems: "center",
+    backgroundColor: "#fff",
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 20,
   },
 });
