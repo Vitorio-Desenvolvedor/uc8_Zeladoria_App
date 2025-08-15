@@ -1,19 +1,27 @@
 from rest_framework import viewsets, permissions
-from .models import Sala, RegistroLimpeza
-from .serializers import SalaSerializer, RegistroLimpezaSerializer
+from .models import Sala
+from .serializers import SalaSerializer
+from historico.models import HistoricoLimpeza
+from historico.serializers import HistoricoLimpezaSerializer
 
-# Apenas admins podem alterar salas
+class IsAdminOrReadOnly(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        return request.user and request.user.is_staff
+
 class SalaViewSet(viewsets.ModelViewSet):
     queryset = Sala.objects.all()
     serializer_class = SalaSerializer
+    permission_classes = [IsAdminOrReadOnly]
 
-    def get_permissions(self):
-        if self.action in ['list', 'retrieve']:
-            return [permissions.IsAuthenticated()]
-        return [permissions.IsAdminUser()]
+class HistoricoLimpezaViewSet(viewsets.ModelViewSet):
+    serializer_class = HistoricoLimpezaSerializer
 
-# Histórico de Limpezas — somente admins podem ver
-class RegistroLimpezaViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = RegistroLimpeza.objects.all().order_by('-data_limpeza')
-    serializer_class = RegistroLimpezaSerializer
-    permission_classes = [permissions.IsAdminUser]
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            return HistoricoLimpeza.objects.all()
+        return HistoricoLimpeza.objects.filter(usuario=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(usuario=self.request.user)
