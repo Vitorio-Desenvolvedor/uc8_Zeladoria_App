@@ -1,70 +1,57 @@
+// src/screens/HistoricoScreen.tsx
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
-import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-interface RegistroLimpeza {
-  id: number;
-  sala: string;
-  usuario: string;
-  observacao: string;
-  data_limpeza: string;
-}
+import { View, Text, TextInput, FlatList, StyleSheet } from 'react-native';
+import { api } from '../services/api';
+import { Limpeza } from '../routes/types';
 
 export default function HistoricoScreen() {
-  const [historico, setHistorico] = useState<RegistroLimpeza[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [items, setItems] = useState<Limpeza[]>([]);
+  const [search, setSearch] = useState('');
+
+  async function loadData() {
+    const { data } = await api.get<{ results?: Limpeza[] }>(`/limpezas/?ordering=-data${search ? `&search=${encodeURIComponent(search)}` : ''}`);
+    const list = Array.isArray(data) ? (data as unknown as Limpeza[]) : (data.results ?? []);
+    setItems(list);
+  }
 
   useEffect(() => {
-    const fetchHistorico = async () => {
-      try {
-        const token = await AsyncStorage.getItem('token');
-        const response = await axios.get('http://192.168.15.3:8000/api/salas/historico/', {
-          headers: { Authorization: `Token ${token}` },
-        });
-        setHistorico(response.data);
-      } catch (error) {
-        console.error('Erro ao buscar histórico:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchHistorico();
-  }, []);
-
-  if (loading) {
-    return <ActivityIndicator size="large" color="#000" style={{ marginTop: 20 }} />;
-  }
+    loadData();
+  }, [search]);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Histórico de Limpezas</Text>
+      <Text style={styles.title}>Histórico</Text>
+
+      <TextInput
+        placeholder="Buscar por observação..."
+        value={search}
+        onChangeText={setSearch}
+        style={styles.input}
+      />
+
       <FlatList
-        data={historico}
-        keyExtractor={(item) => item.id.toString()}
+        data={items}
+        keyExtractor={(it) => String(it.id)}
         renderItem={({ item }) => (
           <View style={styles.card}>
-            <Text style={styles.sala}>{item.sala}</Text>
-            <Text>Usuário: {item.usuario}</Text>
-            <Text>Observação: {item.observacao || 'Nenhuma'}</Text>
-            <Text>Data: {new Date(item.data_limpeza).toLocaleString()}</Text>
+            <Text style={styles.cardTitle}>{item.sala_nome ?? `Sala #${item.sala}`}</Text>
+            <Text style={styles.cardLine}>Data: {new Date(item.data).toLocaleString()}</Text>
+            <Text style={styles.cardLine}>Por: {item.usuario_username ?? `#${item.usuario}`}</Text>
+            {item.observacao ? <Text style={styles.cardObs}>{item.observacao}</Text> : null}
           </View>
         )}
+        ListEmptyComponent={<Text style={{ color: '#666' }}>Sem registros.</Text>}
       />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16 },
-  title: { fontSize: 20, fontWeight: 'bold', marginBottom: 16 },
-  card: {
-    backgroundColor: '#f9f9f9',
-    padding: 12,
-    marginBottom: 10,
-    borderRadius: 8,
-    elevation: 2,
-  },
-  sala: { fontWeight: 'bold', fontSize: 16 },
+  container: { flex: 1, padding: 16, backgroundColor: '#fff' },
+  title: { fontSize: 20, fontWeight: '800', marginBottom: 12 },
+  input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 6, padding: 8, marginBottom: 12 },
+  card: { borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 8, padding: 12, marginBottom: 10 },
+  cardTitle: { fontWeight: '800', marginBottom: 4 },
+  cardLine: { color: '#444' },
+  cardObs: { marginTop: 6, color: '#111' },
 });

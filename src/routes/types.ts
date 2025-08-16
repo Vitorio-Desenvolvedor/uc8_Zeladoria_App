@@ -1,14 +1,22 @@
-export type RootStackParamList = {
-  Login: undefined;
-  Home: undefined;
-  SalaDetalhes: { sala: any };
-  TelaAdminSalas: undefined;
-  FormSala: { sala?: any }; // aceita com ou sem sala
-  TelaHistorico: undefined;
-  TelaPerfil: undefined;
-  TelaCadastroUsuario: undefined;
-  DetalhesSala: { sala: { id: number; nome: string; status: string } };
-  RegistroLimpeza: { salaId: number };
-  HistoricoLimpezas: undefined;
-  AdminSalas: undefined;   
+export type User = {
+  id: number;
+  username: string;
+  email: string;
+  is_staff: boolean;
+};
+
+export type Sala = {
+  id: number;
+  nome: string;
+};
+
+export type Limpeza = {
+  id: number;
+  sala: number;
+  sala_nome?: string;
+  observacao: string;
+  data: string;        // ISO string
+  usuario: number;
+  usuario_username?: string;
+   status: string;
 };

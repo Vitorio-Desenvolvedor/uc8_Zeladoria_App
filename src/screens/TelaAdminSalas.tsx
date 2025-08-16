@@ -1,150 +1,101 @@
-import React, { useEffect, useState, useContext } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  Button,
-  Alert,
-  ActivityIndicator,
-} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, FlatList, TextInput, Button, Alert, StyleSheet } from 'react-native';
 import axios from 'axios';
-import { AuthContext } from '../context/AuthContext';
-import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../routes/types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'TelaAdminSalas'>;
+export default function TelaAdmin() {
+  const [salas, setSalas] = useState([]);
+  const [nome, setNome] = useState('');
+  const [editandoId, setEditandoId] = useState<number | null>(null);
 
-type Sala = {
-  id: number;
-  nome: string;
-  capacidade: number;
-  recursos: string;
-  bloco: string;
-};
+  const API_URL = 'http://192.168.15.3:8000/salas/';
 
-export default function TelaAdminSalas() {
-  const { token, user } = useContext(AuthContext);
-  const navigation = useNavigation<NavigationProp>();
+  async function carregarSalas() {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const res = await axios.get(API_URL, {
+        headers: { Authorization: `Token ${token}` }
+      });
+      setSalas(res.data);
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível carregar as salas');
+    }
+  }
 
-  const [salas, setSalas] = useState<Sala[]>([]);
-  const [loading, setLoading] = useState(true);
+  async function salvarSala() {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (editandoId) {
+        await axios.put(`${API_URL}${editandoId}/`, { nome }, {
+          headers: { Authorization: `Token ${token}` }
+        });
+        Alert.alert('Sucesso', 'Sala atualizada com sucesso');
+      } else {
+        await axios.post(API_URL, { nome }, {
+          headers: { Authorization: `Token ${token}` }
+        });
+        Alert.alert('Sucesso', 'Sala criada com sucesso');
+      }
+      setNome('');
+      setEditandoId(null);
+      carregarSalas();
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível salvar a sala');
+    }
+  }
+
+  async function deletarSala(id: number) {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      await axios.delete(`${API_URL}${id}/`, {
+        headers: { Authorization: `Token ${token}` }
+      });
+      Alert.alert('Sucesso', 'Sala removida');
+      carregarSalas();
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível excluir a sala');
+    }
+  }
+
+  function iniciarEdicao(sala: any) {
+    setNome(sala.nome);
+    setEditandoId(sala.id);
+  }
 
   useEffect(() => {
-    if (!user?.is_staff) {
-      Alert.alert('Acesso negado', 'Você não tem permissão para acessar esta tela.');
-      navigation.goBack();
-      return;
-    }
-
     carregarSalas();
   }, []);
 
-  const carregarSalas = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get('http://127.0.0.1:8000/api/salas/', {
-        headers: { Authorization: `Token ${token}` },
-      });
-      setSalas(response.data);
-    } catch (error: any) {
-      console.log(error.response?.data || error.message);
-      Alert.alert('Erro', 'Não foi possível carregar as salas.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const excluirSala = async (id: number) => {
-    Alert.alert('Confirmar', 'Deseja realmente excluir esta sala?', [
-      { text: 'Cancelar', style: 'cancel' },
-      {
-        text: 'Excluir',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await axios.delete(`http://127.0.0.1:8000/api/salas/${id}/`, {
-              headers: { Authorization: `Token ${token}` },
-            });
-            carregarSalas();
-            Alert.alert('Sucesso', 'Sala excluída com sucesso.');
-          } catch (error: any) {
-            console.log(error.response?.data || error.message);
-            Alert.alert('Erro', 'Não foi possível excluir a sala.');
-          }
-        },
-      },
-    ]);
-  };
-
-  const renderItem = ({ item }: { item: Sala }) => (
-    <View style={styles.card}>
-      <Text style={styles.titulo}>{item.nome}</Text>
-      <Text>Bloco: {item.bloco}</Text>
-      <Text>Capacidade: {item.capacidade}</Text>
-      <Text>Recursos: {item.recursos}</Text>
-
-      <View style={styles.botoes}>
-        <Button
-          title="Editar"
-          onPress={() => navigation.navigate('FormSala', { sala: item })}
-        />
-        <Button
-          title="Excluir"
-          color="#d9534f"
-          onPress={() => excluirSala(item.id)}
-        />
-      </View>
-    </View>
-  );
-
-  if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#444" />
-        <Text>Carregando salas...</Text>
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
-      <Button
-        title="➕ Nova Sala"
-        onPress={() => navigation.navigate('FormSala', {})}
+      <Text style={styles.titulo}>Gerenciamento de Salas</Text>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Nome da sala"
+        value={nome}
+        onChangeText={setNome}
       />
+      <Button title={editandoId ? "Atualizar Sala" : "Adicionar Sala"} onPress={salvarSala} />
 
       <FlatList
         data={salas}
         keyExtractor={(item) => item.id.toString()}
-        renderItem={renderItem}
-        contentContainerStyle={{ paddingVertical: 10 }}
+        renderItem={({ item }) => (
+          <View style={styles.item}>
+            <Text>{item.nome}</Text>
+            <Button title="Editar" onPress={() => iniciarEdicao(item)} />
+            <Button title="Excluir" color="red" onPress={() => deletarSala(item.id)} />
+          </View>
+        )}
       />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20 },
-  card: {
-    backgroundColor: '#f2f2f2',
-    padding: 15,
-    borderRadius: 8,
-    marginBottom: 10,
-  },
-  titulo: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  botoes: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 10,
-  },
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  container: { flex: 1, padding: 20, backgroundColor: '#fff' },
+  titulo: { fontSize: 20, fontWeight: 'bold', marginBottom: 10 },
+  input: { borderWidth: 1, borderColor: '#ccc', padding: 8, marginBottom: 10, borderRadius: 5 },
+  item: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10, padding: 10, borderWidth: 1, borderColor: '#ccc', borderRadius: 5 }
 });
