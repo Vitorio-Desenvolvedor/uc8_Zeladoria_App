@@ -1,4 +1,3 @@
-// App.tsx
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -11,6 +10,7 @@ import RegistroLimpezaScreen from "./src/screens/RegistroLimpezaScreen";
 import HistoricoScreen from "./src/screens/HistoricoScreen";
 import AdminScreen from "./src/screens/AdminScreen";
 import SalaDetalhesScreen from "./src/screens/SalaDetalhesScreen";
+import HistoricoLimpezasScreen from "./src/screens/HistoricoLimpezasScreen";
 
 // Tipos centralizados
 export type RootStackParamList = {
@@ -18,8 +18,10 @@ export type RootStackParamList = {
   Home: undefined;
   RegistroLimpeza: { salaId: number; salaNome: string };
   Historico: undefined;
+  HistoricoLimpezas: undefined;
   AdminSalas: undefined;
   SalaDetalhes: { salaId: number; salaNome: string };
+   Admin: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -29,6 +31,9 @@ export default function App() {
     <AuthProvider>
       <NavigationContainer>
         <Stack.Navigator initialRouteName="Login">
+          <Stack.Screen
+            name="HistoricoLimpezas"
+            component={HistoricoLimpezasScreen} />
           <Stack.Screen
             name="Login"
             component={LoginScreen}

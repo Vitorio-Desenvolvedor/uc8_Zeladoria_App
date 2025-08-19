@@ -1,53 +1,47 @@
-// src/screens/LoginScreen.tsx
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
-import { useAuth } from '../context/AuthContext';
+import React, { useState } from "react";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../../App";
+import { useNavigation } from "@react-navigation/native";
 
-export default function LoginScreen({ navigation }: any) {
-  const { signIn } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+type LoginScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, "Login">;
 
-  async function onLogin() {
+export default function LoginScreen() {
+  const navigation = useNavigation<LoginScreenNavigationProp>();
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  async function handleLogin() {
     try {
-      await signIn({ email, password });
-      navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
-    } catch (e: any) {
-      Alert.alert('Erro ao entrar', 'Verifique e-mail e senha ou conexão com o servidor.');
+      const response = await axios.post("http://192.168.15.3:8000/auth/token/login/", {
+        username,
+        password,
+      });
+      await AsyncStorage.setItem("auth_token", response.data.auth_token);
+      navigation.navigate("Home");
+    } catch {
+      Alert.alert("Erro", "Credenciais inválidas.");
     }
   }
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.select({ ios: 'padding', android: undefined })}>
-      <Text style={styles.title}>Zeladoria</Text>
-
-      <TextInput
-        placeholder="E-mail"
-        autoCapitalize="none"
-        keyboardType="email-address"
-        value={email}
-        onChangeText={setEmail}
-        style={styles.input}
-      />
-      <TextInput
-        placeholder="Senha"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-        style={styles.input}
-      />
-
-      <TouchableOpacity style={styles.btn} onPress={onLogin}>
-        <Text style={styles.btnText}>Entrar</Text>
+    <View style={styles.container}>
+      <Text style={styles.titulo}>Login</Text>
+      <TextInput placeholder="Usuário" style={styles.input} value={username} onChangeText={setUsername} />
+      <TextInput placeholder="Senha" secureTextEntry style={styles.input} value={password} onChangeText={setPassword} />
+      <TouchableOpacity style={styles.botao} onPress={handleLogin}>
+        <Text style={styles.textoBotao}>Entrar</Text>
       </TouchableOpacity>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, justifyContent: 'center', backgroundColor: '#fff' },
-  title: { fontSize: 28, fontWeight: '800', marginBottom: 24, textAlign: 'center' },
-  input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 12, marginBottom: 12 },
-  btn: { backgroundColor: '#2563eb', padding: 14, borderRadius: 10, marginTop: 6 },
-  btnText: { color: '#fff', fontWeight: '700', textAlign: 'center' },
+  container: { flex: 1, justifyContent: "center", padding: 20 },
+  titulo: { fontSize: 24, fontWeight: "bold", marginBottom: 20, textAlign: "center" },
+  input: { backgroundColor: "#fff", padding: 10, marginBottom: 10, borderRadius: 5 },
+  botao: { backgroundColor: "blue", padding: 12, borderRadius: 5 },
+  textoBotao: { color: "#fff", textAlign: "center", fontWeight: "bold" },
 });

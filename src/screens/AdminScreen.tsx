@@ -1,13 +1,48 @@
-// src/screens/AdminScreen.tsx
 import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, FlatList, Alert, StyleSheet } from 'react-native';
 import { Sala } from '../routes/types';
 import { api } from '../services/api';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+type Salas={
+  id: number;
+  nome:string;
+  descricao: string;
+};
 
 export default function AdminScreen() {
   const [salas, setSalas] = useState<Sala[]>([]);
   const [newSala, setNewSala] = useState('');
+  const[descricao, setDescricao] = useState ("");
 
+  async function fetchSalas() {
+    const token = await AsyncStorage.getItem("auth_token");
+    const response = await axios.get("http://192.168.15.3:8000/api/salas/", {
+      headers: { Authorization: `Token ${token}` },
+    });
+    setSalas(response.data);
+  }
+   useEffect(() => {
+    fetchSalas();
+  }, []);
+
+  async function adicionarSala() {
+    try {
+      const token = await AsyncStorage.getItem("auth_token");
+      await axios.post(
+        "http://192.168.15.3:8000/api/salas/",
+        { nome, descricao },
+        { headers: { Authorization: `Token ${token}` } }
+      );
+      setNome("");
+      setDescricao("");
+      fetchSalas();
+    } catch {
+      Alert.alert("Erro", "Não foi possível adicionar a sala.");
+    }
+  }
+  
   async function loadSalas() {
     const res = await api.get<Sala[]>('/salas/');
     setSalas(res.data);

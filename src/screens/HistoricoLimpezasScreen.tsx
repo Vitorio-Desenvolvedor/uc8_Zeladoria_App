@@ -3,6 +3,21 @@ import { View, Text, TextInput, TouchableOpacity, FlatList, ActivityIndicator, S
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { api } from '../services/api';
 import { Sala, Limpeza } from '../routes/types';
+import axios from 'axios';
+
+export default function HistoricoLimpezasScreen() {
+  const [historico, setHistorico] = useState<Limpeza[]>([]);
+
+  useEffect(() => {
+    async function fetchHistorico() {
+      const token = await AsyncStorage.getItem("auth_token");
+      const response = await axios.get("http://192.168.15.3:8000/api/limpezas/", {
+        headers: { Authorization: `Token ${token}` },
+      });
+      setHistorico(response.data);
+    }
+    fetchHistorico();
+  }, []);
 
 type RootStackParamList = {
   HistoricoLimpezas: undefined;
@@ -224,4 +239,4 @@ const styles = StyleSheet.create({
   footer: { flexDirection: 'row', justifyContent: 'space-between' },
   user: { color: '#374151' },
   status: { color: '#6b7280', fontStyle: 'italic' },
-});
+};
