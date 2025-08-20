@@ -1,39 +1,38 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { api, setAuthToken } from '../services/api';
-import { User } from '../routes/types';
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { api, BASE_URL } from "../api/api";
+
+type User = {
+  id: number;
+  username: string;
+  email?: string;
+  is_staff: boolean;
+};
 
 type AuthContextType = {
   user: User | null;
   token: string | null;
   loading: boolean;
-  signIn: (payload: { email: string; password: string }) => Promise<void>;
+  signIn: (username: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   refreshMe: () => Promise<void>;
 };
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
 
+  // carrega token salvo e tenta obter /auth/users/me/
   useEffect(() => {
     (async () => {
       try {
-        const [tok, rawUser] = await Promise.all([
-          AsyncStorage.getItem('@token'),
-          AsyncStorage.getItem('@user'),
-        ]);
-        if (tok) {
-          setToken(tok);
-          setAuthToken(tok);
-        }
-        if (rawUser) {
-          setUser(JSON.parse(rawUser));
-        } else if (tok) {
-          await fetchMe(); // revalida usuário
+        const saved = await AsyncStorage.getItem("token");
+        if (saved) {
+          setToken(saved);
+          await fetchMe(); // se token válido, preenche user
         }
       } finally {
         setLoading(false);
@@ -41,41 +40,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })();
   }, []);
 
-  async function fetchMe() {
-    const { data } = await api.get<User>('/auth/users/me/');
+  const fetchMe = async () => {
+    const { data } = await api.get<User>("/auth/users/me/");
     setUser(data);
-    await AsyncStorage.setItem('@user', JSON.stringify(data));
-  }
+  };
 
-  async function signIn({ email, password }: { email: string; password: string }) {
-    // Djoser Token login
-    const { data } = await api.post<{ auth_token: string }>('/auth/token/login/', {
-      email,
-      password,
-    });
-    const tok = data.auth_token;
-    setToken(tok);
-    setAuthToken(tok);
-    await AsyncStorage.setItem('@token', tok);
+  const signIn = async (username: string, password: string) => {
+    // Djoser: /auth/token/login/ -> {auth_token}
+    const loginRes = await api.post<{ auth_token: string }>(
+      "/auth/token/login/",
+      { username, password }
+    );
+    const authToken = loginRes.data.auth_token;
+    await AsyncStorage.setItem("token", authToken);
+    setToken(authToken);
+
+    // carrega usuário atual
     await fetchMe();
-  }
+  };
 
-  async function signOut() {
+  const signOut = async () => {
     try {
-      await api.post('/auth/token/logout/');
-    } catch {
-      // ignora erro de logout
-    }
-    setToken(null);
+      // Djoser: /auth/token/logout/
+      await api.post("/auth/token/logout/");
+    } catch {}
     setUser(null);
-    setAuthToken(null);
-    await AsyncStorage.multiRemove(['@token', '@user']);
-  }
+    setToken(null);
+    await AsyncStorage.removeItem("token");
+  };
 
-  async function refreshMe() {
-    if (!token) return;
-    await fetchMe();
-  }
+  const refreshMe = async () => {
+    const saved = await AsyncStorage.getItem("token");
+    if (saved) {
+      setToken(saved);
+      await fetchMe();
+    }
+  };
 
   const value = useMemo(
     () => ({ user, token, loading, signIn, signOut, refreshMe }),
@@ -86,7 +86,5 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
-  return ctx;
+  return useContext(AuthContext);
 }

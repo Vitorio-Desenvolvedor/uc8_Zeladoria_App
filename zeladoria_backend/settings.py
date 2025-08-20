@@ -8,7 +8,6 @@ SECRET_KEY = "sua-secret-key-aqui"
 DEBUG = True
 
 ALLOWED_HOSTS = ["*"]  # permite acesso de qualquer host (use com cuidado em produção)
-
 # -----------------------------
 # APPS INSTALADOS
 # -----------------------------

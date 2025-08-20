@@ -20,3 +20,12 @@ export type Limpeza = {
   usuario_username?: string;
    status: string;
 };
+
+export type RootStackParamList = {
+  Login: undefined;
+  Home: undefined;
+  RegistroLimpeza: undefined;
+  HistoricoLimpezas: undefined;
+  AdminSalas: undefined;
+  DetalhesSala: { salaId: number };
+};

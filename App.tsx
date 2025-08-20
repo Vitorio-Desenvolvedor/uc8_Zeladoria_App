@@ -1,71 +1,53 @@
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { AuthProvider } from "./src/context/AuthContext";
+import { AuthProvider, useAuth } from "./src/context/AuthContext";
+import { RootStackParamList } from "./src/routes/types";
 
-// Importando telas
 import LoginScreen from "./src/screens/LoginScreen";
 import HomeScreen from "./src/screens/HomeScreen";
 import RegistroLimpezaScreen from "./src/screens/RegistroLimpezaScreen";
-import HistoricoScreen from "./src/screens/HistoricoScreen";
-import AdminScreen from "./src/screens/AdminScreen";
-import SalaDetalhesScreen from "./src/screens/SalaDetalhesScreen";
 import HistoricoLimpezasScreen from "./src/screens/HistoricoLimpezasScreen";
-
-// Tipos centralizados
-export type RootStackParamList = {
-  Login: undefined;
-  Home: undefined;
-  RegistroLimpeza: { salaId: number; salaNome: string };
-  Historico: undefined;
-  HistoricoLimpezas: undefined;
-  AdminSalas: undefined;
-  SalaDetalhes: { salaId: number; salaNome: string };
-   Admin: undefined;
-};
+import AdminSalasScreen from "./src/screens/AdminSalas";
+import DetalhesSalaScreen from "./src/screens/DetalhesSalaScreen";
+import { ActivityIndicator, View } from "react-native";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+
+function AppRoutes() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+        <ActivityIndicator />
+      </View>
+    );
+  }
+
+  return (
+    <Stack.Navigator>
+      {user ? (
+        <>
+          <Stack.Screen name="Home" component={HomeScreen} options={{ title: "Início" }} />
+          <Stack.Screen name="RegistroLimpeza" component={RegistroLimpezaScreen} options={{ title: "Registrar Limpeza" }} />
+          <Stack.Screen name="HistoricoLimpezas" component={HistoricoLimpezasScreen} options={{ title: "Histórico" }} />
+          <Stack.Screen name="AdminSalas" component={AdminSalasScreen} options={{ title: "Admin. Salas" }} />
+          <Stack.Screen name="DetalhesSala" component={DetalhesSalaScreen} options={{ title: "Detalhes da Sala" }} />
+        </>
+      ) : (
+        <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+      )}
+    </Stack.Navigator>
+  );
+}
 
 export default function App() {
   return (
     <AuthProvider>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="Login">
-          <Stack.Screen
-            name="HistoricoLimpezas"
-            component={HistoricoLimpezasScreen} />
-          <Stack.Screen
-            name="Login"
-            component={LoginScreen}
-            options={{ title: "Login" }}
-          />
-          <Stack.Screen
-            name="Home"
-            component={HomeScreen}
-            options={{ title: "Início" }}
-          />
-          <Stack.Screen
-            name="RegistroLimpeza"
-            component={RegistroLimpezaScreen}
-            options={{ title: "Registrar Limpeza" }}
-          />
-          <Stack.Screen
-            name="Historico"
-            component={HistoricoScreen}
-            options={{ title: "Histórico de Limpezas" }}
-          />
-          <Stack.Screen
-            name="AdminSalas"
-            component={AdminScreen}
-            options={{ title: "Administração de Salas" }}
-          />
-          <Stack.Screen
-            name="SalaDetalhes"
-            component={SalaDetalhesScreen}
-            options={{ title: "Detalhes da Sala" }}
-          />
-        </Stack.Navigator>
+        <AppRoutes />
       </NavigationContainer>
     </AuthProvider>
   );
-};
+}
