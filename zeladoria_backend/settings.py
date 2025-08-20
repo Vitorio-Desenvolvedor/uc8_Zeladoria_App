@@ -121,3 +121,13 @@ USE_TZ = True
 STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:19006",   # Expo web
+    "http://127.0.0.1:19006",
+    "http://192.168.15.3:19006",  # IP da sua máquina na rede
+]
+
+AUTH_USER_MODEL = 'usuarios.Usuario'
+

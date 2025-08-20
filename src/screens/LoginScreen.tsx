@@ -22,10 +22,10 @@ export default function LoginScreen() {
       setLoading(false);
     }
   };
-
+''
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Zeladoria — Login</Text>
+      <Text style={styles.title}>Login</Text>
       <TextInput
         placeholder="Usuário"
         autoCapitalize="none"
