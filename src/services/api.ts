@@ -1,16 +1,9 @@
-import axios from 'axios';
+import axios from "axios";
 
-const baseURL = 'http://192.168.15.3:8000'; // ajustar caso precisar
-
-export const api = axios.create({
-  baseURL,
-  timeout: 15000,
+const api = axios.create({
+  baseURL: "http://10.0.2.2:8000/api", 
+  timeout: 5000,
+  headers: { "Content-Type": "application/json" },
 });
 
-export function setAuthToken(token: string | null) {
-  if (token) {
-    api.defaults.headers.common.Authorization = `Token ${token}`;
-  } else {
-    delete api.defaults.headers.common.Authorization;
-  }
-}
+export default api;

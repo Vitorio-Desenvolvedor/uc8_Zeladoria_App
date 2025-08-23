@@ -1,50 +1,22 @@
-import React, { useEffect } from "react";
-import { View, Text, Button, StyleSheet } from "react-native";
+import React from "react";
+import { View, Text, Button } from "react-native";
 import { useAuth } from "../context/AuthContext";
 
 export default function HomeScreen({ navigation }: any) {
-  const { user, signOut, refreshMe } = useAuth();
-
-  useEffect(() => {
-    refreshMe(); // garante dados atualizados
-  }, []);
+  const { user, signOut } = useAuth();
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.welcome}>Bem-vindo, {user?.username}!</Text>
+    <View style={{ flex: 1, justifyContent: "center", padding: 20 }}>
+      <Text style={{ fontSize: 20, marginBottom: 20 }}>
+        Bem-vindo, {user?.username}
+      </Text>
 
-      <View style={styles.buttonContainer}>
-        <Button
-          title="Registrar Limpeza"
-          onPress={() => navigation.navigate("RegistroLimpeza")}
-        />
-      </View>
-
-      <View style={styles.buttonContainer}>
-        <Button
-          title="Histórico de Limpezas"
-          onPress={() => navigation.navigate("HistoricoLimpezas")}
-        />
-      </View>
-
+      <Button title="Salas" onPress={() => navigation.navigate("Salas")} />
+      <Button title="Histórico" onPress={() => navigation.navigate("Historico")} />
       {user?.is_staff && (
-        <View style={styles.buttonContainer}>
-          <Button
-            title="Administração de Salas"
-            onPress={() => navigation.navigate("AdminSalas")}
-          />
-        </View>
+        <Button title="Administração" onPress={() => navigation.navigate("Admin")} />
       )}
-
-      <View style={styles.buttonContainer}>
-        <Button title="Sair" color="red" onPress={signOut} />
-      </View>
+      <Button title="Sair" color="red" onPress={signOut} />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: "center", justifyContent: "center", padding: 20 },
-  welcome: { fontSize: 20, fontWeight: "bold", marginBottom: 30 },
-  buttonContainer: { marginVertical: 8, width: "80%" },
-});

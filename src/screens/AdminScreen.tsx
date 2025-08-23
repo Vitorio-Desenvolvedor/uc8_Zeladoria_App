@@ -1,131 +1,45 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, Alert, StyleSheet } from 'react-native';
-import { Sala } from '../routes/types';
-import { api } from '../services/api';
-import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useEffect, useState } from "react";
+import { View, Text, FlatList, Button, Alert } from "react-native";
+import api from "../services/api";
 
-type Salas={
+interface Sala {
   id: number;
-  nome:string;
+  nome: string;
   descricao: string;
-};
+}
 
 export default function AdminScreen() {
   const [salas, setSalas] = useState<Sala[]>([]);
-  const [newSala, setNewSala] = useState('');
-  const[descricao, setDescricao] = useState ("");
 
-  async function fetchSalas() {
-    const token = await AsyncStorage.getItem("auth_token");
-    const response = await axios.get("http://192.168.15.3:8000/api/salas/", {
-      headers: { Authorization: `Token ${token}` },
-    });
-    setSalas(response.data);
-  }
-   useEffect(() => {
-    fetchSalas();
-  }, []);
-
-  async function adicionarSala() {
-    try {
-      const token = await AsyncStorage.getItem("auth_token");
-      await axios.post(
-        "http://192.168.15.3:8000/api/salas/",
-        { nome, descricao },
-        { headers: { Authorization: `Token ${token}` } }
-      );
-      setNome("");
-      setDescricao("");
-      fetchSalas();
-    } catch {
-      Alert.alert("Erro", "Não foi possível adicionar a sala.");
-    }
-  }
-  
-  async function loadSalas() {
-    const res = await api.get<Sala[]>('/salas/');
+  async function carregar() {
+    const res = await api.get("/salas/");
     setSalas(res.data);
   }
 
-  async function addSala() {
-    if (!newSala.trim()) return;
-    try {
-      const res = await api.post<Sala>('/salas/', { nome: newSala });
-      setSalas(prev => [...prev, res.data]);
-      setNewSala('');
-    } catch (e) {
-      Alert.alert('Erro', 'Não foi possível adicionar sala. Verifique se você é administrador.');
-    }
-  }
-
-  async function updateSala(id: number, nome: string) {
-    try {
-      const res = await api.put<Sala>(`/salas/${id}/`, { nome });
-      setSalas(prev => prev.map(s => (s.id === id ? res.data : s)));
-    } catch {
-      Alert.alert('Erro', 'Não foi possível atualizar.');
-    }
-  }
-
-  async function deleteSala(id: number) {
+  async function deletar(id: number) {
     try {
       await api.delete(`/salas/${id}/`);
-      setSalas(prev => prev.filter(s => s.id !== id));
+      Alert.alert("Sala removida!");
+      carregar();
     } catch {
-      Alert.alert('Erro', 'Não foi possível excluir.');
+      Alert.alert("Erro ao excluir sala");
     }
   }
 
   useEffect(() => {
-    loadSalas();
+    carregar();
   }, []);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Administração de Salas</Text>
-
-      <View style={styles.row}>
-        <TextInput
-          placeholder="Nova sala"
-          value={newSala}
-          onChangeText={setNewSala}
-          style={styles.input}
-        />
-        <TouchableOpacity style={styles.btnAdd} onPress={addSala}>
-          <Text style={styles.btnText}>Adicionar</Text>
-        </TouchableOpacity>
-      </View>
-
-      <FlatList
-        data={salas}
-        keyExtractor={(item) => String(item.id)}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <TextInput
-              value={item.nome}
-              onChangeText={(txt) => updateSala(item.id, txt)}
-              style={styles.inputInline}
-            />
-            <TouchableOpacity onPress={() => deleteSala(item.id)} style={styles.btnDel}>
-              <Text style={styles.btnText}>Excluir</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-        ListEmptyComponent={<Text style={{ color: '#666' }}>Nenhuma sala cadastrada.</Text>}
-      />
-    </View>
+    <FlatList
+      data={salas}
+      keyExtractor={(item) => item.id.toString()}
+      renderItem={({ item }) => (
+        <View style={{ padding: 10, borderBottomWidth: 1 }}>
+          <Text style={{ fontSize: 18 }}>{item.nome}</Text>
+          <Button title="Excluir" onPress={() => deletar(item.id)} />
+        </View>
+      )}
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: '#fff' },
-  title: { fontSize: 20, fontWeight: '800', marginBottom: 12 },
-  row: { flexDirection: 'row', marginBottom: 12 },
-  input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 6, flex: 1, padding: 8, marginRight: 8 },
-  btnAdd: { backgroundColor: '#2563eb', padding: 10, borderRadius: 6 },
-  btnDel: { backgroundColor: '#dc2626', padding: 8, borderRadius: 6, marginLeft: 8 },
-  btnText: { color: '#fff', fontWeight: '700' },
-  card: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  inputInline: { flex: 1, borderWidth: 1, borderColor: '#ccc', borderRadius: 6, padding: 6 }
-});
