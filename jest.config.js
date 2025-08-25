@@ -1,12 +1,14 @@
+/** @type {import('ts-jest').JestConfigWithTsJest} */
 module.exports = {
-  preset: "jest-expo",
-  testMatch: ["**/__tests__/**/*.ts?(x)", "**/?(*.)+(spec|test).ts?(x)"],
+  preset: "ts-jest",
+  testEnvironment: "node",
   setupFilesAfterEnv: ["@testing-library/jest-native/extend-expect"],
-  transformIgnorePatterns: [
-    "node_modules/(?!(react-native" +
-      "|@react-native" +
-      "|react-clone-referenced-element" +
-      "|@react-navigation" +
-      ")/)"
+  transform: {
+    "^.+\\.(ts|tsx)$": "ts-jest",
+  },
+  testMatch: [
+    "**/__tests__/**/*.test.ts?(x)",
+    "**/?(*.)+(spec|test).ts?(x)"
   ],
+  moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
 };

@@ -1,55 +1,68 @@
-import React, { createContext, useState, useContext, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import api from "../services/api";
+import API from "../../api/api";
 
-interface User {
+type User = {
   id: number;
   username: string;
   email: string;
-  is_staff: boolean;
-}
+};
 
-interface AuthContextType {
+type AuthContextType = {
   user: User | null;
-  signIn: (username: string, password: string) => Promise<boolean>;
-  signOut: () => void;
-}
+  token: string | null;
+  login: (username: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+  refreshMe: () => Promise<void>;
+};
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
 
-  async function signIn(username: string, password: string) {
-    try {
-      const res = await api.post("/auth/jwt/create/", { username, password });
-      const token = res.data.access;
+  useEffect(() => {
+    const loadToken = async () => {
+      const stored = await AsyncStorage.getItem("token");
+      if (stored) {
+        setToken(stored);
+        await refreshMe();
+      }
+    };
+    loadToken();
+  }, []);
 
-      await AsyncStorage.setItem("token", token);
-      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+  const login = async (username: string, password: string) => {
+    const res = await API.post("/auth/jwt/create/", { username, password });
+    const token = res.data.access;
+    await AsyncStorage.setItem("token", token);
+    setToken(token);
+    await refreshMe();
+  };
 
-      const me = await api.get("/auth/users/me/");
-      setUser(me.data);
-
-      return true;
-    } catch (error) {
-      console.error("Erro no login", error);
-      return false;
-    }
-  }
-
-  async function signOut() {
+  const logout = async () => {
     await AsyncStorage.removeItem("token");
+    setToken(null);
     setUser(null);
-  }
+  };
+
+  const refreshMe = async () => {
+    if (!token) return;
+    try {
+      const res = await API.get("/auth/users/me/");
+      setUser(res.data);
+    } catch (error) {
+      console.log("Erro ao buscar usuário:", error);
+      await logout();
+    }
+  };
 
   return (
-    <AuthContext.Provider value={{ user, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, token, login, logout, refreshMe }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export function useAuth() {
-  return useContext(AuthContext);
-}
+export const useAuth = () => useContext(AuthContext);

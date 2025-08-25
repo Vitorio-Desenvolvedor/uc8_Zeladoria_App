@@ -1,10 +1,5 @@
 import React from 'react';
-import type { ViewProps } from 'react-native';
-import type { NativeProps } from '../../fabric/gamma/SplitViewHostNativeComponent';
-export type SplitViewNativeProps = NativeProps & {};
-type SplitViewHostProps = {
-    children?: ViewProps['children'];
-} & SplitViewNativeProps;
+import type { SplitViewHostProps } from './SplitViewHost.types';
 /**
  * EXPERIMENTAL API, MIGHT CHANGE W/O ANY NOTICE
  */

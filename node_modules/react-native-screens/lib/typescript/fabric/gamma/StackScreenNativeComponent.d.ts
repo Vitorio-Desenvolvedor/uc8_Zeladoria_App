@@ -1,4 +1,3 @@
-/// <reference types="react-native/types/modules/Codegen" />
 import type { ViewProps } from 'react-native';
 import { DirectEventHandler, Int32 } from 'react-native/Libraries/Types/CodegenTypes';
 export type GenericEmptyEvent = Readonly<{}>;

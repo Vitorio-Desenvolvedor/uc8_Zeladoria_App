@@ -1,102 +1,51 @@
-import React, { useCallback, useState } from "react";
-import { View, Text, FlatList, RefreshControl, StyleSheet } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
-import { api } from "../api/api";
+import React, { useEffect, useState } from "react";
+import { View, Text, FlatList, StyleSheet } from "react-native";
+import API from "../../api/api";
 
-type Limpeza = {
+type Historico = {
   id: number;
-  sala: number | { id: number; nome: string };
+  sala: { nome: string };
+  data: string;
+  status: string;
   observacao?: string;
-  status?: string; // backend pode enviar status (ex.: "Concluída")
-  criado_em?: string;
-  usuario?: number | { id: number; username: string };
 };
 
 export default function HistoricoLimpezasScreen() {
-  const [data, setData] = useState<Limpeza[]>([]);
-  const [refreshing, setRefreshing] = useState(false);
+  const [historico, setHistorico] = useState<Historico[]>([]);
 
-  const fetchData = async () => {
-    const res = await api.get<Limpeza[]>("/api/limpezas/");
-    setData(res.data ?? []);
-  };
-
-  useFocusEffect(
-    useCallback(() => {
-      fetchData();
-    }, [])
-  );
-
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await fetchData();
-    setRefreshing(false);
-  };
-
-  const renderItem = ({ item }: { item: Limpeza }) => {
-    const salaNome =
-      typeof item.sala === "object" ? item.sala.nome ?? item.sala.id : item.sala;
-    const usuarioNome =
-      typeof item.usuario === "object" ? item.usuario.username ?? item.usuario.id : item.usuario;
-
-    return (
-      <View style={styles.card}>
-        <Text style={styles.label}>Sala:</Text>
-        <Text style={styles.value}>{salaNome}</Text>
-
-        {item.observacao ? (
-          <>
-            <Text style={styles.label}>Obs:</Text>
-            <Text style={styles.value}>{item.observacao}</Text>
-          </>
-        ) : null}
-
-        {item.status ? (
-          <>
-            <Text style={styles.label}>Status:</Text>
-            <Text style={styles.value}>{item.status}</Text>
-          </>
-        ) : null}
-
-        {item.criado_em ? (
-          <>
-            <Text style={styles.label}>Data:</Text>
-            <Text style={styles.value}>{new Date(item.criado_em).toLocaleString()}</Text>
-          </>
-        ) : null}
-
-        {item.usuario ? (
-          <>
-            <Text style={styles.label}>Usuário:</Text>
-            <Text style={styles.value}>{usuarioNome}</Text>
-          </>
-        ) : null}
-      </View>
-    );
-  };
+  useEffect(() => {
+    const fetchHistorico = async () => {
+      try {
+        const res = await API.get("/api/historico/");
+        setHistorico(res.data);
+      } catch (error) {
+        console.log("Erro ao buscar histórico:", error);
+      }
+    };
+    fetchHistorico();
+  }, []);
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={styles.container}>
+      <Text style={styles.title}>Histórico de Limpezas</Text>
       <FlatList
-        data={data}
-        keyExtractor={(it) => String(it.id)}
-        renderItem={renderItem}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        contentContainerStyle={{ padding: 16 }}
+        data={historico}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <Text>Sala: {item.sala.nome}</Text>
+            <Text>Data: {item.data}</Text>
+            <Text>Status: {item.status}</Text>
+            {item.observacao && <Text>Obs: {item.observacao}</Text>}
+          </View>
+        )}
       />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 12,
-    backgroundColor: "#fff",
-  },
-  label: { fontWeight: "600", marginTop: 6 },
-  value: { marginTop: 2 },
+  container: { flex: 1, padding: 20 },
+  title: { fontSize: 22, marginBottom: 20 },
+  card: { padding: 10, marginBottom: 10, borderWidth: 1, borderRadius: 5 },
 });

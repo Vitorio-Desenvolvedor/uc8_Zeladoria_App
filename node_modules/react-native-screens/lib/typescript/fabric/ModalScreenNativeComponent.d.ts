@@ -1,4 +1,3 @@
-/// <reference types="react-native/types/modules/Codegen" />
 import type { ViewProps, ColorValue } from 'react-native';
 import type { DirectEventHandler, WithDefault, Int32, Float, Double } from 'react-native/Libraries/Types/CodegenTypes';
 type ScreenEvent = Readonly<{}>;

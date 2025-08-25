@@ -1,22 +1,53 @@
-import React from "react";
-import { View, Text, Button } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, Button, FlatList, StyleSheet } from "react-native";
 import { useAuth } from "../context/AuthContext";
+import API from "../../api/api";
+
+type Sala = {
+  id: number;
+  nome: string;
+  localizacao: string;
+};
 
 export default function HomeScreen({ navigation }: any) {
-  const { user, signOut } = useAuth();
+  const { user, logout } = useAuth();
+  const [salas, setSalas] = useState<Sala[]>([]);
+
+  useEffect(() => {
+    const fetchSalas = async () => {
+      try {
+        const res = await API.get("/api/salas/");
+        setSalas(res.data);
+      } catch (error) {
+        console.log("Erro ao buscar salas:", error);
+      }
+    };
+    fetchSalas();
+  }, []);
 
   return (
-    <View style={{ flex: 1, justifyContent: "center", padding: 20 }}>
-      <Text style={{ fontSize: 20, marginBottom: 20 }}>
-        Bem-vindo, {user?.username}
-      </Text>
+    <View style={styles.container}>
+      <Text style={styles.title}>Bem-vindo, {user?.username}</Text>
+      <Button
+        title="Ver Histórico de Limpezas"
+        onPress={() => navigation.navigate("Historico")}
+      />
+      <Button title="Sair" color="red" onPress={logout} />
 
-      <Button title="Salas" onPress={() => navigation.navigate("Salas")} />
-      <Button title="Histórico" onPress={() => navigation.navigate("Historico")} />
-      {user?.is_staff && (
-        <Button title="Administração" onPress={() => navigation.navigate("Admin")} />
-      )}
-      <Button title="Sair" color="red" onPress={signOut} />
+      <Text style={styles.subtitle}>Salas cadastradas:</Text>
+      <FlatList
+        data={salas}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <Text>{item.nome} - {item.localizacao}</Text>
+        )}
+      />
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1, padding: 20 },
+  title: { fontSize: 22, marginBottom: 20 },
+  subtitle: { fontSize: 18, marginTop: 20 },
+});
