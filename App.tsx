@@ -1,29 +1,27 @@
-import React, { useContext } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-import { AuthContext, AuthProvider } from './src/context/AuthContext';
-import LoginScreen from './src/screens/LoginScreen';
-import HomeScreen from './src/screens/HomeScreen';
-import SalasScreen from './src/screens/SalasScreen';
-import HistoricoScreen from './src/screens/HistoricoScreen';
+import React from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { AuthProvider, useAuth } from "./src/context/AuthContext";
 
-const Stack = createStackNavigator();
+import LoginScreen from "./src/screens/LoginScreen";
+import HomeScreen from "./src/screens/HomeScreen";
+
+export type RootStackParamList = {
+  Login: undefined;
+  Home: undefined;
+};
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function Routes() {
-  const { user, loading } = useContext(AuthContext);
-
-  if (loading) return null;
+  const { user } = useAuth();
 
   return (
     <Stack.Navigator>
       {user ? (
-        <>
-          <Stack.Screen name="Home" component={HomeScreen} />
-          <Stack.Screen name="Salas" component={SalasScreen} />
-          <Stack.Screen name="Historico" component={HistoricoScreen} />
-        </>
+        <Stack.Screen name="Home" component={HomeScreen} options={{ title: "Início" }} />
       ) : (
-        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
       )}
     </Stack.Navigator>
   );

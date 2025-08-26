@@ -1,68 +1,71 @@
-import React, { createContext, useState, useEffect, ReactNode } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import api from '../api/api';
+import React, { createContext, useContext, useMemo, useState } from "react";
+import { api, setAuthToken } from "../api/api";
 
-interface AuthContextProps {
-  user: any | null;
+type UserData = {
+  id: number;
+  username: string;
+  email: string;
+  is_staff: boolean;
+  is_superuser: boolean;
+};
+
+type AuthContextType = {
+  user: UserData | null;
   token: string | null;
   loading: boolean;
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
-}
+};
 
-export const AuthContext = createContext<AuthContextProps>({} as AuthContextProps);
+export const AuthContext = createContext<AuthContextType | null>(null);
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<any | null>(null);
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<UserData | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const loadStorage = async () => {
-      const storedToken = await AsyncStorage.getItem('@token');
-      const storedUser = await AsyncStorage.getItem('@user');
-      if (storedToken && storedUser) {
-        setToken(storedToken);
-        setUser(JSON.parse(storedUser));
-        api.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
-      }
-      setLoading(false);
-    };
-    loadStorage();
-  }, []);
+  const [loading, setLoading] = useState(false);
 
   const login = async (username: string, password: string) => {
+    setLoading(true);
     try {
-      const response = await api.post('/auth/jwt/create/', { username, password });
-      const access = response.data.access;
-      const refresh = response.data.refresh;
+      // Endpoint real informado por você
+      const { data } = await api.post("/accounts/login/", { username, password });
+      // A API retorna { username, password, token, user_data: {...} }
+      const receivedToken: string = data?.token;
+      const userData: UserData = data?.user_data;
 
-      setToken(access);
-      api.defaults.headers.common['Authorization'] = `Bearer ${access}`;
+      if (!receivedToken || !userData) {
+        throw new Error("Resposta de login inesperada.");
+      }
 
-      const userResponse = await api.get('/auth/users/me/');
-      setUser(userResponse.data);
-
-      await AsyncStorage.setItem('@token', access);
-      await AsyncStorage.setItem('@refresh', refresh);
-      await AsyncStorage.setItem('@user', JSON.stringify(userResponse.data));
-    } catch (error) {
-      console.error('Erro no login', error);
-      throw new Error('Credenciais inválidas');
+      setToken(receivedToken);
+      setUser(userData);
+      setAuthToken(receivedToken);
+      // (Opcional) persistir no AsyncStorage se quiser login persistente
+      // await AsyncStorage.setItem("auth", JSON.stringify({ token: receivedToken, user: userData }));
+    } finally {
+      setLoading(false);
     }
   };
 
-  const logout = async () => {
-    setUser(null);
+  const logout = () => {
     setToken(null);
-    await AsyncStorage.removeItem('@token');
-    await AsyncStorage.removeItem('@refresh');
-    await AsyncStorage.removeItem('@user');
+    setUser(null);
+    setAuthToken(null);
+    // AsyncStorage.removeItem("auth").catch(() => {});
   };
 
-  return (
-    <AuthContext.Provider value={{ user, token, loading, login, logout }}>
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo(
+    () => ({ user, token, loading, login, logout }),
+    [user, token, loading]
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+
+export function useAuth(): AuthContextType {
+  const ctx = useContext(AuthContext);
+  if (!ctx) {
+    throw new Error("useAuth deve ser usado DENTRO de <AuthProvider>.");
+  }
+  return ctx;
+}

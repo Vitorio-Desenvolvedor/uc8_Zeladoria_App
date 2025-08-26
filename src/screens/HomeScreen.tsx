@@ -4,7 +4,14 @@ import { AuthContext } from '../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 
 const HomeScreen = () => {
-  const { user, logout } = useContext(AuthContext);
+
+  const authContext = useContext(AuthContext)
+
+  if (!authContext) {
+    return null
+  }
+
+  const { user, logout } = authContext;
   const navigation = useNavigation();
 
   return (

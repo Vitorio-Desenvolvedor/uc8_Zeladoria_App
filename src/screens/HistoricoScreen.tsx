@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { View, Text, FlatList, StyleSheet, Alert } from 'react-native';
-import api from '../api/api';
+import { api } from '../api/api';
 import { AuthContext } from '../context/AuthContext';
 
 interface Limpeza {
