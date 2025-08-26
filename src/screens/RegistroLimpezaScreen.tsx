@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, Button, StyleSheet, Alert } from "react-native";
-import { api } from "../api/api";
+import api from "../api/api";
 
 export default function RegistroLimpezaScreen() {
   const [salaId, setSalaId] = useState("");

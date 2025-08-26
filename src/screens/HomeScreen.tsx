@@ -1,53 +1,27 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, Button, FlatList, StyleSheet } from "react-native";
-import { useAuth } from "../context/AuthContext";
-import API from "../../api/api";
+import React, { useContext } from 'react';
+import { View, Text, Button, StyleSheet } from 'react-native';
+import { AuthContext } from '../context/AuthContext';
+import { useNavigation } from '@react-navigation/native';
 
-type Sala = {
-  id: number;
-  nome: string;
-  localizacao: string;
-};
-
-export default function HomeScreen({ navigation }: any) {
-  const { user, logout } = useAuth();
-  const [salas, setSalas] = useState<Sala[]>([]);
-
-  useEffect(() => {
-    const fetchSalas = async () => {
-      try {
-        const res = await API.get("/api/salas/");
-        setSalas(res.data);
-      } catch (error) {
-        console.log("Erro ao buscar salas:", error);
-      }
-    };
-    fetchSalas();
-  }, []);
+const HomeScreen = () => {
+  const { user, logout } = useContext(AuthContext);
+  const navigation = useNavigation();
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Bem-vindo, {user?.username}</Text>
-      <Button
-        title="Ver Histórico de Limpezas"
-        onPress={() => navigation.navigate("Historico")}
-      />
-      <Button title="Sair" color="red" onPress={logout} />
-
-      <Text style={styles.subtitle}>Salas cadastradas:</Text>
-      <FlatList
-        data={salas}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <Text>{item.nome} - {item.localizacao}</Text>
-        )}
-      />
+      <Text style={styles.title}>Bem-vindo, {user?.username || 'Usuário'}!</Text>
+      <Button title="Ver Salas" onPress={() => navigation.navigate('Salas' as never)} />
+      {user?.is_staff && (
+        <Button title="Histórico de Limpezas" onPress={() => navigation.navigate('Historico' as never)} />
+      )}
+      <Button title="Sair" onPress={logout} />
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20 },
-  title: { fontSize: 22, marginBottom: 20 },
-  subtitle: { fontSize: 18, marginTop: 20 },
+  container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  title: { fontSize: 20, marginBottom: 20 },
 });
+
+export default HomeScreen;

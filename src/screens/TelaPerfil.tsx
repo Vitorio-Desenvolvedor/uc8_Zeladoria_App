@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { View, Text, StyleSheet, Button, Alert } from 'react-native';
-import { AuthContext } from '../context/AuthContext';
+import { AuthContext} from '../context/AuthContext';
 
 export default function TelaPerfil() {
   const { user, logout } = useContext(AuthContext);

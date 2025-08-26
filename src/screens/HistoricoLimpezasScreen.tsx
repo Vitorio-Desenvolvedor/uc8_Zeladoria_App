@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, FlatList, StyleSheet } from "react-native";
-import API from "../../api/api";
+import API from "../api/api";
 
 type Historico = {
   id: number;

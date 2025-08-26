@@ -3,7 +3,7 @@ import { render, waitFor } from '@testing-library/react-native';
 import HistoricoLimpezasScreen from '../screens/HistoricoLimpezasScreen';
 import { AuthProvider } from '../context/AuthContext';
 import MockAdapter from 'axios-mock-adapter';
-import API from '../../api/api';
+import API from '../api/api';
 
 const Wrapper = ({ children }: any) => <AuthProvider>{children}</AuthProvider>;
 

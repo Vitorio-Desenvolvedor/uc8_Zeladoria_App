@@ -1,5 +1,5 @@
 import MockAdapter from 'axios-mock-adapter';
-import API from '../../api/api';
+import API from '../api/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AxiosRequestConfig } from "axios";
 

@@ -3,7 +3,7 @@ import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import LoginScreen from '../screens/LoginScreen';
 import { AuthProvider } from '../context/AuthContext';
 import MockAdapter from 'axios-mock-adapter';
-import API from '../../api/api';
+import API from '../api/api';
 
 const renderWithProviders = (ui: React.ReactElement) =>
   render(<AuthProvider>{ui}</AuthProvider>);

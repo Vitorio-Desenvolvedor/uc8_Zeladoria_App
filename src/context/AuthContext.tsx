@@ -1,68 +1,68 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import API from "../../api/api";
+import React, { createContext, useState, useEffect, ReactNode } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import api from '../api/api';
 
-type User = {
-  id: number;
-  username: string;
-  email: string;
-};
-
-type AuthContextType = {
-  user: User | null;
+interface AuthContextProps {
+  user: any | null;
   token: string | null;
+  loading: boolean;
   login: (username: string, password: string) => Promise<void>;
-  logout: () => Promise<void>;
-  refreshMe: () => Promise<void>;
-};
+  logout: () => void;
+}
 
-const AuthContext = createContext<AuthContextType>({} as AuthContextType);
+export const AuthContext = createContext<AuthContextProps>({} as AuthContextProps);
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<any | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadToken = async () => {
-      const stored = await AsyncStorage.getItem("token");
-      if (stored) {
-        setToken(stored);
-        await refreshMe();
+    const loadStorage = async () => {
+      const storedToken = await AsyncStorage.getItem('@token');
+      const storedUser = await AsyncStorage.getItem('@user');
+      if (storedToken && storedUser) {
+        setToken(storedToken);
+        setUser(JSON.parse(storedUser));
+        api.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
       }
+      setLoading(false);
     };
-    loadToken();
+    loadStorage();
   }, []);
 
   const login = async (username: string, password: string) => {
-    const res = await API.post("/auth/jwt/create/", { username, password });
-    const token = res.data.access;
-    await AsyncStorage.setItem("token", token);
-    setToken(token);
-    await refreshMe();
-  };
-
-  const logout = async () => {
-    await AsyncStorage.removeItem("token");
-    setToken(null);
-    setUser(null);
-  };
-
-  const refreshMe = async () => {
-    if (!token) return;
     try {
-      const res = await API.get("/auth/users/me/");
-      setUser(res.data);
+      const response = await api.post('/auth/jwt/create/', { username, password });
+      const access = response.data.access;
+      const refresh = response.data.refresh;
+
+      setToken(access);
+      api.defaults.headers.common['Authorization'] = `Bearer ${access}`;
+
+      const userResponse = await api.get('/auth/users/me/');
+      setUser(userResponse.data);
+
+      await AsyncStorage.setItem('@token', access);
+      await AsyncStorage.setItem('@refresh', refresh);
+      await AsyncStorage.setItem('@user', JSON.stringify(userResponse.data));
     } catch (error) {
-      console.log("Erro ao buscar usuário:", error);
-      await logout();
+      console.error('Erro no login', error);
+      throw new Error('Credenciais inválidas');
     }
   };
 
+  const logout = async () => {
+    setUser(null);
+    setToken(null);
+    await AsyncStorage.removeItem('@token');
+    await AsyncStorage.removeItem('@refresh');
+    await AsyncStorage.removeItem('@user');
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, refreshMe }}>
+    <AuthContext.Provider value={{ user, token, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
 };
-
-export const useAuth = () => useContext(AuthContext);

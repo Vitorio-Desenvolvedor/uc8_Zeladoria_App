@@ -2,7 +2,7 @@ import React from 'react';
 import { render, waitFor } from '@testing-library/react-native';
 import { AuthProvider, useAuth } from '../context/AuthContext';
 import MockAdapter from 'axios-mock-adapter';
-import API from '../../api/api';
+import API from '../api/api';
 
 function Consumer() {
   const { user, login, logout, token } = useAuth();

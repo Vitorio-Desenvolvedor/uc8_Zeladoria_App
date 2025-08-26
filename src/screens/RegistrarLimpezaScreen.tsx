@@ -1,9 +1,8 @@
 // src/screens/RegistrarLimpezaScreen.tsx
 import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
-import { api } from '../services/api';
+import api from "../api/api";
 import { Sala } from '../routes/types';
-// Obs: Se não usa @react-native-picker/picker, você pode substituir por um select simples de botões.
 
 export default function RegistrarLimpezaScreen({ navigation }: any) {
   const [salas, setSalas] = useState<Sala[]>([]);
