@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
-import api from "../api/api";
+import { api } from "../api/api";
 
 type Sala = { id: number; nome: string; descricao?: string };
 

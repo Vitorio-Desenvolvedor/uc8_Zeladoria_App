@@ -1,71 +1,45 @@
-import React, { createContext, useContext, useMemo, useState } from "react";
-import { api, setAuthToken } from "../api/api";
+import React, { createContext, useState, useContext, ReactNode } from 'react';
+import { AuthContextType, UserData } from '../routes/types';
 
-type UserData = {
-  id: number;
-  username: string;
-  email: string;
-  is_staff: boolean;
-  is_superuser: boolean;
-};
+// Criando o contexto, iniciando como null
+export const AuthContext = createContext<AuthContextType | null>(null); 
 
-type AuthContextType = {
-  user: UserData | null;
-  token: string | null;
-  loading: boolean;
-  login: (username: string, password: string) => Promise<void>;
-  logout: () => void;
-};
-
-export const AuthContext = createContext<AuthContextType | null>(null);
-
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserData | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false); // 🔹 adicionamos loading
 
+  // Função de login
   const login = async (username: string, password: string) => {
-    setLoading(true);
+    setLoading(true); // 🔹 inicia loading
     try {
-      // Endpoint real informado por você
-      const { data } = await api.post("/accounts/login/", { username, password });
-      // A API retorna { username, password, token, user_data: {...} }
-      const receivedToken: string = data?.token;
-      const userData: UserData = data?.user_data;
-
-      if (!receivedToken || !userData) {
-        throw new Error("Resposta de login inesperada.");
-      }
-
-      setToken(receivedToken);
-      setUser(userData);
-      setAuthToken(receivedToken);
-      // (Opcional) persistir no AsyncStorage se quiser login persistente
-      // await AsyncStorage.setItem("auth", JSON.stringify({ token: receivedToken, user: userData }));
+      // 🔹 chamada real à API aqui
+      console.log('Login simulado:', username, password);
+      setUser({ id: 1, username, email: `${username}@teste.com`, is_staff: false, is_superuser: false });
+      setToken('fake-token-123');
+    } catch (error) {
+      console.error('Erro ao logar:', error);
     } finally {
-      setLoading(false);
+      setLoading(false); // 🔹 finaliza loading
     }
   };
 
+  // Função de logout
   const logout = () => {
-    setToken(null);
     setUser(null);
-    setAuthToken(null);
-    // AsyncStorage.removeItem("auth").catch(() => {});
+    setToken(null);
   };
 
-  const value = useMemo(
-    () => ({ user, token, loading, login, logout }),
-    [user, token, loading]
+  return (
+    <AuthContext.Provider value={{ user, token, login, logout, loading }}>
+      {children}
+    </AuthContext.Provider>
   );
+}
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
-
+// Hook personalizado para acessar o contexto
 export function useAuth(): AuthContextType {
-  const ctx = useContext(AuthContext);
-  if (!ctx) {
-    throw new Error("useAuth deve ser usado DENTRO de <AuthProvider>.");
-  }
-  return ctx;
+  const context = useContext(AuthContext);
+  if (!context) throw new Error('useAuth deve ser usado dentro de AuthProvider');
+  return context;
 }

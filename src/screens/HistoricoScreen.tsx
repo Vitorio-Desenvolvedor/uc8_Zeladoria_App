@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { View, Text, FlatList, StyleSheet, Alert } from 'react-native';
 import { api } from '../api/api';
-import { AuthContext } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 
 interface Limpeza {
   id: number;
@@ -12,7 +12,7 @@ interface Limpeza {
 }
 
 const HistoricoScreen = () => {
-  const { token, user } = useContext(AuthContext);
+  const { token, user } = useAuth();
   const [historico, setHistorico] = useState<Limpeza[]>([]);
 
   useEffect(() => {

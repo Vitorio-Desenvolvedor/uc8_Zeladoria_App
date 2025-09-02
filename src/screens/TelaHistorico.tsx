@@ -1,101 +1,68 @@
-import React, { useEffect, useState, useContext } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  ActivityIndicator,
-  Alert,
-} from 'react-native';
-import axios from 'axios';
-import { AuthContext } from '../context/AuthContext';
+import React, { useEffect, useState } from 'react';
+import { View, Text, FlatList, StyleSheet } from 'react-native';
+import { api } from '../api/api';
+import { useAuth } from '../context/AuthContext';
+import { Limpeza } from '../routes/types';
 
-type Limpeza = {
-  id: number;
-  sala: string;
-  usuario: string;
-  observacao: string;
-  data_limpeza: string;
-};
-
-export default function TelaHistorico() {
-  const { token, user } = useContext(AuthContext);
+const TelaHistorico = () => {
+  const { token, user } = useAuth();
   const [historico, setHistorico] = useState<Limpeza[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user?.is_staff) {
-      Alert.alert('Acesso negado', 'Você não tem permissão para acessar esta tela.');
-      return;
+    const fetchHistorico = async () => {
+      try {
+        const response = await api.get('/historico/', {
+          headers: { Authorization: `Token ${token}` },
+        });
+
+        // 🔹 Normaliza: transforma sala em objeto se vier como número
+        const historicoNormalizado: Limpeza[] = response.data.map((item: any) => ({
+          ...item,
+          sala:
+            typeof item.sala === 'number'
+              ? { id: item.sala, nome: `Sala ${item.sala}` }
+              : item.sala,
+        }));
+
+        setHistorico(historicoNormalizado);
+      } catch (error) {
+        console.error('Erro ao carregar histórico:', error);
+      }
+    };
+
+    if (token) {
+      fetchHistorico();
     }
-
-    buscarHistorico();
-  }, []);
-
-  const buscarHistorico = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get('http://127.0.0.1:8000/api/limpezas/', {
-        headers: { Authorization: `Token ${token}` },
-      });
-      setHistorico(response.data);
-    } catch (error: any) {
-      console.log(error.response?.data || error.message);
-      Alert.alert('Erro', 'Não foi possível carregar o histórico.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const renderItem = ({ item }: { item: Limpeza }) => {
-    const data = new Date(item.data_limpeza).toLocaleString();
-    return (
-      <View style={styles.card}>
-        <Text style={styles.sala}>🧼 {item.sala}</Text>
-        <Text>👤 {item.usuario}</Text>
-        <Text>🕒 {data}</Text>
-        {item.observacao ? <Text>🗒️ {item.observacao}</Text> : null}
-      </View>
-    );
-  };
-
-  if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#333" />
-        <Text>Carregando histórico...</Text>
-      </View>
-    );
-  }
+  }, [token]);
 
   return (
     <View style={styles.container}>
+      <Text style={styles.title}>Histórico de Limpezas</Text>
       <FlatList
         data={historico}
         keyExtractor={(item) => item.id.toString()}
-        renderItem={renderItem}
-        contentContainerStyle={{ paddingBottom: 20 }}
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <Text>Sala: {item.sala.nome}</Text>
+            <Text>Observação: {item.observacao}</Text>
+            <Text>Data: {item.data}</Text>
+            <Text>Responsável: {user?.username || 'Desconhecido'}</Text>
+          </View>
+        )}
       />
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16 },
+  container: { flex: 1, padding: 20 },
+  title: { fontSize: 20, fontWeight: 'bold', marginBottom: 10 },
   card: {
-    backgroundColor: '#f0f0f0',
-    padding: 14,
+    backgroundColor: '#f9f9f9',
+    padding: 10,
     borderRadius: 8,
     marginBottom: 10,
   },
-  sala: {
-    fontWeight: 'bold',
-    fontSize: 16,
-    marginBottom: 4,
-  },
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
 });
+
+export default TelaHistorico;

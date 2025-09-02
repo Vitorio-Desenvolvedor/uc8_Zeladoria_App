@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View, TextInput, Button, StyleSheet } from "react-native";
-import api from "../services/api";
+import { api } from "../api/api";
+
 
 export default function LimpezaScreen({ route, navigation }: any) {
   const { salaId } = route.params;

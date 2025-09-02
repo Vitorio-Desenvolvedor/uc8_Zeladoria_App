@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, FlatList, StyleSheet } from "react-native";
-import API from "../api/api";
+import { api } from "../api/api";
+
 
 type Historico = {
   id: number;
@@ -16,7 +17,7 @@ export default function HistoricoLimpezasScreen() {
   useEffect(() => {
     const fetchHistorico = async () => {
       try {
-        const res = await API.get("/api/historico/");
+        const res = await api.get("/api/historico/");
         setHistorico(res.data);
       } catch (error) {
         console.log("Erro ao buscar histórico:", error);

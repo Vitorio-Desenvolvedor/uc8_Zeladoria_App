@@ -17,28 +17,33 @@ import { RootStackParamList } from './types';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function Routes() {
-  const { isAuthenticated, user } = useContext(AuthContext);
+  const authContext = useContext(AuthContext);
+
+  if(!authContext) {
+    return null
+  }
+  const {user, token}= authContext
 
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: true }}>
-        {!isAuthenticated ? (
+        {token == null ? (
           <>
             <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
           </>
         ) : (
           <>
             <Stack.Screen name="Home" component={HomeScreen} />
-            <Stack.Screen name="SalaDetalhes" component={SalaDetalhes} />
+            <Stack.Screen name="DetalhesSala" component={SalaDetalhes} />
             <Stack.Screen name="TelaPerfil" component={TelaPerfil} />
 
             {/* Rotas de admin */}
             {user?.is_staff && (
               <>
-                <Stack.Screen name="TelaAdminSalas" component={TelaAdminSalas} />
+                <Stack.Screen name="AdminSalas" component={TelaAdminSalas} />
                 <Stack.Screen name="FormSala" component={FormSala} />
                 <Stack.Screen name="TelaHistorico" component={TelaHistorico} />
-                <Stack.Screen name="TelaCadastroUsuario" component={TelaCadastroUsuario} />
+                <Stack.Screen name="CadastroUsuario" component={TelaCadastroUsuario} />
               </>
             )}
           </>

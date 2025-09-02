@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { View, Text, FlatList, Button, TextInput, StyleSheet, Alert } from 'react-native';
 import { api } from '../api/api';
-import { AuthContext } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 
 interface Sala {
   id: number;
@@ -10,7 +10,7 @@ interface Sala {
 }
 
 const SalasScreen = () => {
-  const { token } = useContext(AuthContext);
+  const { token } = useAuth();
   const [salas, setSalas] = useState<Sala[]>([]);
   const [observacao, setObservacao] = useState<string>('');
 

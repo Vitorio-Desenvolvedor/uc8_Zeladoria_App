@@ -9,7 +9,7 @@ import {
   Button,
 } from 'react-native';
 import axios from 'axios';
-import { AuthContext } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../routes/types';
@@ -25,7 +25,7 @@ type Sala = {
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
 export default function HomeScreen() {
-  const { token, user } = useContext(AuthContext);
+  const { token, user } = useAuth();
   const navigation = useNavigation<NavigationProp>();
 
   const [salas, setSalas] = useState<Sala[]>([]);
@@ -63,7 +63,7 @@ export default function HomeScreen() {
   const renderSala = ({ item }: { item: Sala }) => (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => navigation.navigate('SalaDetalhes', { sala: item })}
+      onPress={() => navigation.navigate('DetalhesSala', { salaId: item.id })}
     >
       <Text style={styles.titulo}>{item.nome}</Text>
       <Text>Bloco: {item.bloco}</Text>
@@ -111,7 +111,7 @@ export default function HomeScreen() {
 
       {user?.is_staff && (
         <View style={styles.adminArea}>
-          <Button title="⚙️ Gerenciar Salas" onPress={() => navigation.navigate('TelaAdminSalas')} />
+          <Button title="⚙️ Gerenciar Salas" onPress={() => navigation.navigate('AdminSalas')} />
           <Button title="📜 Ver Histórico" onPress={() => navigation.navigate('TelaHistorico')} />
         </View>
       )}

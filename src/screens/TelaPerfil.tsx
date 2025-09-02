@@ -1,33 +1,28 @@
-import React, { useContext } from 'react';
-import { View, Text, StyleSheet, Button, Alert } from 'react-native';
-import { AuthContext} from '../context/AuthContext';
+import React from 'react';
+import { View, Text, Button, StyleSheet } from 'react-native';
+import { useAuth } from '../context/AuthContext';
+import { AuthContextType } from '../routes/types'; //  importando a tipagem
 
 export default function TelaPerfil() {
-  const { user, logout } = useContext(AuthContext);
-
-  const handleLogout = () => {
-    Alert.alert('Sair', 'Deseja realmente sair?', [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Sair', onPress: logout },
-    ]);
-  };
+  const auth = useAuth() as AuthContextType; //  forçando o tipo
 
   return (
     <View style={styles.container}>
-      <Text style={styles.titulo}>👤 Meu Perfil</Text>
-      <Text style={styles.info}>Usuário: {user?.username}</Text>
-      <Text style={styles.info}>Tipo: {user?.is_staff ? 'Administrador' : 'Funcionário'}</Text>
-
-      <View style={styles.botaoSair}>
-        <Button title="🚪 Sair" onPress={handleLogout} color="#d9534f" />
-      </View>
+      <Text style={styles.titulo}>Perfil do Usuário</Text>
+      {auth.user ? (
+        <>
+          <Text>Usuário: {auth.user.username}</Text>
+          <Text>Email: {auth.user.email || 'Não informado'}</Text>
+          <Button title="Sair" onPress={auth.logout} />
+        </>
+      ) : (
+        <Text>Nenhum usuário logado</Text>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, justifyContent: 'center' },
-  titulo: { fontSize: 24, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
-  info: { fontSize: 18, marginBottom: 10 },
-  botaoSair: { marginTop: 40 },
+  container: { flex: 1, padding: 16 },
+  titulo: { fontSize: 20, fontWeight: 'bold', marginBottom: 12 },
 });

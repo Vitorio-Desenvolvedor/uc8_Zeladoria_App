@@ -85,7 +85,8 @@ export default function TelaDetalhes() {
         <Button
           title="Ver Histórico de Limpezas"
           onPress={() =>
-            navigation.navigate("HistoricoLimpezas" as never, { salaId, token } as never)
+            // navigation.navigate("HistoricoLimpezas" as never, { salaId, token } as never 
+            console.log()
           }
         />
       </View>
