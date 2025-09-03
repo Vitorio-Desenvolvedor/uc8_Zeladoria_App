@@ -1,37 +1,47 @@
-import React, { createContext, useState, useContext, ReactNode } from 'react';
-import { AuthContextType, UserData } from '../routes/types';
+import React, { createContext, useState, useContext, ReactNode } from "react";
+import api from "../api/api";
+import { AuthContextType, UserData } from "../routes/types";
 
-// Criando o contexto, iniciando como null
-export const AuthContext = createContext<AuthContextType | null>(null); 
+// Criando o contexto
+export const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserData | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(false); // 🔹 adicionamos loading
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null); // 🔹 para tratar mensagens de erro
 
-  // Função de login
+  // 🔹 Função de login real com API
   const login = async (username: string, password: string) => {
-    setLoading(true); // 🔹 inicia loading
+    setLoading(true);
+    setError(null);
     try {
-      // 🔹 chamada real à API aqui
-      console.log('Login simulado:', username, password);
-      setUser({ id: 1, username, email: `${username}@teste.com`, is_staff: false, is_superuser: false });
-      setToken('fake-token-123');
-    } catch (error) {
-      console.error('Erro ao logar:', error);
+      const response = await api.post("/accounts/login/", { username, password });
+
+      // A API retorna: { token, user_data }
+      const { token, user_data } = response.data;
+
+      setToken(token);
+      setUser(user_data);
+
+      console.log("Login realizado com sucesso:", user_data);
+    } catch (err: any) {
+      console.error("Erro no login:", err.response?.data || err.message);
+      setError("Usuário ou senha inválidos."); // mensagem de usuário ou senha errados
     } finally {
-      setLoading(false); // 🔹 finaliza loading
+      setLoading(false);
     }
   };
 
-  // Função de logout
+  // 🔹 Função de logout
   const logout = () => {
     setUser(null);
     setToken(null);
+    setError(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, token, login, logout, loading, error, }}>
       {children}
     </AuthContext.Provider>
   );
@@ -40,6 +50,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 // Hook personalizado para acessar o contexto
 export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
-  if (!context) throw new Error('useAuth deve ser usado dentro de AuthProvider');
+  if (!context) throw new Error("useAuth deve ser usado dentro de AuthProvider");
   return context;
 }

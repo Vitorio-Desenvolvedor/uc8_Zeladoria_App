@@ -24,6 +24,7 @@ export interface AuthContextType {
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
   loading: boolean;
+  error: string | null;
 }
 
 
@@ -46,6 +47,7 @@ export type RootStackParamList = {
   CadastroUsuario: undefined;
   TelaPerfil: undefined;
   FormSala: undefined;
+  Salas: undefined;
 };
 
 
