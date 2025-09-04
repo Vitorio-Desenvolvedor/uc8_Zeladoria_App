@@ -9,11 +9,12 @@ export interface Sala {
 
 // Listar salas
 export const getSalas = async (token: string) => {
-  const response = await api.get<Sala[]>("/salas/", {
+  const response = await api.get("/salas/", {
     headers: { Authorization: `Token ${token}` },
   });
   return response.data;
 };
+
 
 // Criar sala
 export const createSala = async (token: string, data: Partial<Sala>) => {
