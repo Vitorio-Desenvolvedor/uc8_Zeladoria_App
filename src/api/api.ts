@@ -11,7 +11,6 @@ export const api = axios.create({
   },
 });
 
-// Helper para setar/remover o Authorization globalmente
 export function setAuthToken(token?: string | null) {
   if (token) {
     api.defaults.headers.common.Authorization = `Token ${token}`;

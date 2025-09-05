@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { useAuth } from "../context/AuthContext";
-import { getSalas, deleteSala, Sala } from "../api/Salas";
+import { getSalas, deleteSala, Sala } from "../api/salas";
 import { useNavigation } from "@react-navigation/native";
 
 export default function TelaAdminSalas() {

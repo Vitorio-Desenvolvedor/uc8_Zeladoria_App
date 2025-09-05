@@ -12,6 +12,7 @@ export const getSalas = async (token: string) => {
   const response = await api.get("/salas/", {
     headers: { Authorization: `Token ${token}` },
   });
+  console.log (response)
   return response.data;
 };
 
