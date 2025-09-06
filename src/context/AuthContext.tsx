@@ -1,8 +1,10 @@
 import React, { createContext, useState, useContext, ReactNode } from "react";
 import api from "../api/api";
 import { AuthContextType, UserData } from "../routes/types";
+import { realizarLogin } from "../services/servicoAutenticacao";
+import { removerToken, salvarToken } from "../services/servicoArmazenamento";
 
-// Criando o contexto
+
 export const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -16,10 +18,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.post("/accounts/login/", { username, password });
+      const response = await realizarLogin({username, password})
 
       // A API retorna: { token, user_data }
-      const { token, user_data } = response.data;
+      const { token, user_data } = response;
+
+      await salvarToken(token)
 
       setToken(token);
       setUser(user_data);
@@ -34,10 +38,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   // 🔹 Função de logout
-  const logout = () => {
+  const logout = async () => {
     setUser(null);
     setToken(null);
     setError(null);
+    await removerToken()
   };
 
   return (

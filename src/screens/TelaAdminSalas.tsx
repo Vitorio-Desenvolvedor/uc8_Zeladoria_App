@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { useAuth } from "../context/AuthContext";
-import { getSalas, deleteSala, Sala } from "../api/salas";
+import { getSalas, deleteSala, SalaCredenciais } from "../api/salas";
 import { useNavigation } from "@react-navigation/native";
 
 export default function TelaAdminSalas() {
   const { token } = useAuth();
   const navigation = useNavigation();
-  const [salas, setSalas] = useState<Sala[]>([]);
+  const [salas, setSalas] = useState<SalaCredenciais[]>([]);
   const [loading, setLoading] = useState(false);
 
   // Buscar salas
