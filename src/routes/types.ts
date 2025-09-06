@@ -41,14 +41,12 @@ export type RootStackParamList = {
   RegistroLimpeza: {salaId: number};
   HistoricoLimpezas: undefined;
   AdminSalas: undefined;
+  FormSala: { sala?: Sala } | undefined;
   DetalhesSala: { salaId: number };
   TelaHistorico: undefined;
   AdminScreen: undefined;
   CadastroUsuario: undefined;
   TelaPerfil: undefined;
-  FormSala: {salas ?: Sala };
   Salas: undefined;
 };
-
-
 

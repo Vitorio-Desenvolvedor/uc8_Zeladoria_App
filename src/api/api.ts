@@ -1,6 +1,4 @@
 import axios from "axios";
-import { AuthContext } from "../context/AuthContext";
-import HomeScreen from "../screens/FormSala";
 
 export const api = axios.create({
   baseURL: "https://zeladoria.tsr.net.br/api",

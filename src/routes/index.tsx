@@ -48,11 +48,11 @@ export default function Routes() {
             {user?.is_staff && (
               <>
                 <Stack.Screen name="AdminSalas" component={TelaAdminSalas} />
-                <Stack.Screen name="FormSala" component={FormSala} />
                 <Stack.Screen name="TelaHistorico" component={TelaHistorico} />
                 <Stack.Screen name="CadastroUsuario" component={TelaCadastroUsuario} />
                 <Stack.Screen name="DetalhesSala" component={DetalhesSalaScreen}/>
                 <Stack.Screen name="AdminScreen" component={AdminScreen} />
+                <Stack.Screen name="FormSala" component={FormSala} />
                 <Stack.Screen name="HistoricoLimpezas" component={HistoricoScreen} />
                 <Stack.Screen name="RegistroLimpeza" component={LimpezaScreen} />
                 <Stack.Screen name="Salas" component={SalasScreen}/>
