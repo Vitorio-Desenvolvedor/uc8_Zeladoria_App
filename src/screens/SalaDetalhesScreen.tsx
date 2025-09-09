@@ -1,71 +1,41 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, Button, StyleSheet, Alert } from "react-native";
-import axios from "axios";
-import { useRoute, useNavigation } from "@react-navigation/native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import React from "react";
+import { View, Text, StyleSheet } from "react-native";
+import { RouteProp, useRoute } from "@react-navigation/native";
+import { Sala } from "../api/apiTypes";
+
+type SalaDetalhesRouteProp = RouteProp<{ SalaDetalhes: { sala: Sala } }, "SalaDetalhes">;
 
 export default function SalaDetalhesScreen() {
-  const route = useRoute();
-  const navigation = useNavigation();
-  const { sala } = route.params as { sala: { id: number; nome: string } };
-
-  const [observacao, setObservacao] = useState("");
-
-  const registrarLimpeza = async () => {
-    try {
-      const token = await AsyncStorage.getItem("token");
-
-      await axios.post(
-        `http://192.168.15.3:8000/salas/historico/listar/`, // rota corrigida
-        {
-          sala: sala.id,
-          observacao: observacao,
-        },
-        {
-          headers: {
-            Authorization: `Token ${token}`,
-          },
-        }
-      );
-
-      Alert.alert("Sucesso", "Limpeza registrada com sucesso!");
-      navigation.goBack();
-    } catch (error) {
-      console.error(error);
-      Alert.alert("Erro", "Não foi possível registrar a limpeza.");
-    }
-  };
+  const route = useRoute<SalaDetalhesRouteProp>();
+  const { sala } = route.params;
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Sala: {sala.nome}</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Observação"
-        value={observacao}
-        onChangeText={setObservacao}
-      />
-      <Button title="Marcar como limpa" onPress={registrarLimpeza} />
+      <Text style={styles.title}>{sala.nome_numero}</Text>
+      <Text style={styles.info}>Capacidade: {sala.capacidade}</Text>
+      <Text style={styles.info}>Localização: {sala.localizacao}</Text>
+      <Text style={styles.info}>Descrição: {sala.descricao}</Text>
+      <Text style={styles.info}>
+        Última limpeza:{" "}
+        {sala.ultima_limpeza_data_hora
+          ? sala.ultima_limpeza_data_hora
+          : "Nunca registrada"}
+      </Text>
+      <Text
+        style={[
+          styles.status,
+          { color: sala.status_limpeza === "Limpa" ? "green" : "red" },
+        ]}
+      >
+        Status: {sala.status_limpeza}
+      </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: "#fff",
-  },
-  title: {
-    fontSize: 20,
-    marginBottom: 20,
-    fontWeight: "bold",
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 5,
-    padding: 10,
-    marginBottom: 20,
-  },
+  container: { flex: 1, padding: 20, backgroundColor: "#f9f9f9" },
+  title: { fontSize: 22, fontWeight: "bold", marginBottom: 15 },
+  info: { fontSize: 16, marginBottom: 8 },
+  status: { fontSize: 18, fontWeight: "bold", marginTop: 15 },
 });

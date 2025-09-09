@@ -1,87 +1,100 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, FlatList, StyleSheet } from "react-native";
+import React from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useAuth } from "../context/AuthContext";
-import { getSalas, SalaCredenciais } from "../api/salas";
-import { Sala } from "../api/apiTypes";
-import { getHistoricoPorSala, Historico } from "../api/historico";
 
-export default function HomeScreen() {
-  const { token } = useAuth();
-  const [salas, setSalas] = useState<Sala[]>([]);
-  // const [historicos, setHistoricos] = useState<{ [key: number]: Historico[] }>({});
-  const [loading, setLoading] = useState(false);
-
-  const fetchSalas = async () => {
-    if (!token) return;
-    try {
-      setLoading(true);
-      const data = await getSalas();
-      setSalas(data);
-      console.log(data)
-
-      // Buscar histórico de cada sala
-      // const historicoData: { [key: number]: Historico[] } = {};
-      // for (const sala of data) {
-      //   historicoData[sala.id] = await getHistoricoPorSala(token, sala.id);
-      // }
-      // setHistoricos(historicoData);
-    } catch (error) {
-      console.error("Erro ao carregar salas ou histórico:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchSalas();
-  }, []);
+export default function HomeScreen({ navigation }: any) {
+  const { user, logout } = useAuth();
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Salas e Histórico</Text>
+      <Text style={styles.title}>Bem-vindo, {user?.username}!</Text>
 
-      {loading ? (
-        <Text>Carregando...</Text>
-      ) : (
-        <FlatList
-          data={salas}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => (
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>{item.nome_numero}</Text>
-              <Text style={styles.cardDesc}>Capacidade: {item.capacidade}</Text>
+      {/* 🔹 Botões principais */}
+      <View style={styles.mainButtons}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => navigation.navigate("Salas")}
+        >
+          <Text style={styles.buttonText}>Ver Salas</Text>
+        </TouchableOpacity>
 
-              {/* <Text style={styles.subTitle}>Últimas Limpezas:</Text> */}
-              {/* {historicos[item.id]?.length ? (
-                historicos[item.id].slice(0, 2).map((h) => (
-                  <Text key={h.id} style={styles.histText}>
-                    • {h.usuario.username} - {h.data_limpeza} ({h.status})
-                  </Text>
-                ))
-              ) : (
-                <Text style={styles.histEmpty}>Nenhum registro</Text>
-              )} */}
-            </View>
-          )}
-        />
-      )}
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => navigation.navigate("RegistrarLimpeza")}
+        >
+          <Text style={styles.buttonText}>Registrar Limpeza</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => navigation.navigate("Historico")}
+        >
+          <Text style={styles.buttonText}>Histórico de Limpezas</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* 🔹 Rodapé fixo */}
+      <View style={styles.footer}>
+        {/* Botão Perfil */}
+        <TouchableOpacity
+          style={[styles.footerButton, { backgroundColor: "#003366" }]}
+          onPress={() => navigation.navigate("Perfil")}
+        >
+          <Text style={styles.footerText}>Perfil</Text>
+        </TouchableOpacity>
+
+        {/* Botão Administrativo */}
+        {(user?.is_staff || user?.is_superuser) && (
+          <TouchableOpacity
+            style={[styles.footerButton, { backgroundColor: "#ff9800" }]}
+            onPress={() => navigation.navigate("AdminSalas")}
+          >
+            <Text style={styles.footerText}>Administração</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Botão Logout */}
+        <TouchableOpacity
+          style={[styles.footerButton, { backgroundColor: "#dc3545" }]}
+          onPress={logout}
+        >
+          <Text style={styles.footerText}>Sair</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: "#f9f9f9" },
-  title: { fontSize: 22, fontWeight: "bold", marginBottom: 15 },
-  card: {
-    backgroundColor: "#fff",
+  container: { flex: 1, justifyContent: "space-between", padding: 20, backgroundColor: "#f9f9f9" },
+  title: { fontSize: 22, fontWeight: "bold", marginTop: 20, textAlign: "center" },
+
+  mainButtons: { flex: 1, justifyContent: "center", alignItems: "center" },
+
+  button: {
+    backgroundColor: "#007bff",
     padding: 15,
     borderRadius: 8,
-    marginBottom: 12,
-    elevation: 2,
+    marginBottom: 15,
+    width: "80%",
+    alignItems: "center",
   },
-  cardTitle: { fontSize: 18, fontWeight: "bold" },
-  cardDesc: { fontSize: 14, color: "#555", marginBottom: 8 },
-  subTitle: { fontSize: 16, fontWeight: "600", marginTop: 10 },
-  histText: { fontSize: 13, color: "#333" },
-  histEmpty: { fontSize: 13, fontStyle: "italic", color: "#777" },
+  buttonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
+
+  footer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    paddingVertical: 15,
+    borderTopWidth: 1,
+    borderColor: "#ccc",
+    backgroundColor: "#fff",
+  },
+  footerButton: {
+    flex: 1,
+    marginHorizontal: 5,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  footerText: { color: "#fff", fontSize: 14, fontWeight: "bold" },
 });

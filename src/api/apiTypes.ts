@@ -20,9 +20,6 @@ export interface UserData{
 
 }
 
-
-
-
 export interface Sala{
     id: number,
     nome_numero: string,
@@ -58,3 +55,17 @@ export interface NovoUsuario{
     is_staff?: boolean,
     // is_superuser: boolean
 }
+
+export interface RegistroLimpeza {
+    id: number;
+    sala: Sala | number;   
+    usuario: Usuario | number;
+    observacao: string | null;
+    data_hora: string;
+}
+  
+export interface NovaLimpeza{
+    sala: string,
+    observação ?: string,
+}
+
