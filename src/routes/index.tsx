@@ -38,7 +38,7 @@ export default function Routes() {
         initialRouteName={token ? "Home" : "Login"}
       >
         {!token ? (
-          //  Se não está logado → só exibe Login
+          // Se não está logado → só exibe Login
           <Stack.Screen
             name="Login"
             component={LoginScreen}
@@ -46,24 +46,36 @@ export default function Routes() {
           />
         ) : (
           <>
-            {/*  Rotas padrão do colaborador */}
+            {/* Rotas padrão do colaborador */}
             <Stack.Screen name="Home" component={HomeScreen} />
             <Stack.Screen name="Salas" component={SalasScreen} />
             <Stack.Screen name="SalaDetalhes" component={SalaDetalhesScreen} />
             <Stack.Screen name="TelaPerfil" component={TelaPerfil} />
 
-            {/*  Rotas extras para administrador */}
+            {/* Rotas extras do administrador */}
             {user?.is_staff && (
               <>
                 <Stack.Screen name="AdminSalas" component={TelaAdminSalas} />
                 <Stack.Screen name="Historico" component={TelaHistorico} />
-                <Stack.Screen name="CadastroUsuario" component={TelaCadastroUsuario} />
-                <Stack.Screen name="SalaDetalhes" component={DetalhesSalaScreen} />
+                <Stack.Screen
+                  name="CadastroUsuario"
+                  component={TelaCadastroUsuario}
+                />
+                <Stack.Screen
+                  name="DetalhesSalaAdmin"
+                  component={DetalhesSalaScreen}
+                />
                 <Stack.Screen name="AdminScreen" component={AdminScreen} />
                 <Stack.Screen name="FormSala" component={FormSala} />
-                <Stack.Screen name="HistoricoLimpezas" component={HistoricoScreen} />
+                <Stack.Screen
+                  name="HistoricoLimpezas"
+                  component={HistoricoScreen}
+                />
                 <Stack.Screen name="RegistroLimpeza" component={LimpezaScreen} />
-                <Stack.Screen name="RegistrarLimpeza" component={RegistrarLimpezaScreen} />
+                <Stack.Screen
+                  name="RegistrarLimpeza"
+                  component={RegistrarLimpezaScreen}
+                />
               </>
             )}
           </>

@@ -1,89 +1,111 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
-import api from "../api/api";
+import { View, Text, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator } from "react-native";
 import { Sala } from "../api/apiTypes";
-import { useNavigation } from "@react-navigation/native";
+import api from "../api/api";
+import { useNavigation, NavigationProp } from "@react-navigation/native";
+import { RootStackParamList } from "../routes/types";
+
+// Tipagem correta da navegação
+type SalasNavigationProp = NavigationProp<RootStackParamList, "Salas">;
 
 export default function SalasScreen() {
   const [salas, setSalas] = useState<Sala[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-
-  const navigation = useNavigation<any>();
+  const [loading, setLoading] = useState(true);
+  const navigation = useNavigation<SalasNavigationProp>();
 
   useEffect(() => {
     const fetchSalas = async () => {
       try {
-        const response = await api.get<Sala[]>("/salas/"); 
+        const response = await api.get("/salas/");
         setSalas(response.data);
       } catch (error) {
-        console.error("Erro ao buscar salas:", error);
-        Alert.alert("Erro", "Não foi possível carregar as salas. Verifique a API.");
+        console.error("Erro ao carregar salas:", error);
       } finally {
         setLoading(false);
       }
     };
-
     fetchSalas();
   }, []);
 
-  const renderItem = ({ item }: { item: Sala }) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() => navigation.navigate("SalaDetalhes", { sala: item })}
-    >
-      <Text style={styles.nome}>{item.nome_numero}</Text>
-      <Text style={styles.info}>Capacidade: {item.capacidade}</Text>
-      <Text style={styles.info}>Localização: {item.localizacao}</Text>
-      <Text
-        style={[
-          styles.status,
-          { color: item.status_limpeza === "Limpa" ? "green" : "red" },
-        ]}
-      >
-        {item.status_limpeza}
-      </Text>
-    </TouchableOpacity>
-  );
-
   if (loading) {
     return (
-      <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color="#007bff" />
-        <Text>Carregando salas...</Text>
+      <View style={styles.loader}>
+        <ActivityIndicator size="large" color="#004A8D" />
+        <Text style={{ marginTop: 10 }}>Carregando salas...</Text>
       </View>
     );
   }
 
+  const renderSala = ({ item }: { item: Sala }) => (
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => navigation.navigate("SalaDetalhes", { salaId: item.id })}
+    >
+      <Text style={styles.nome}>{item.nome_numero}</Text>
+      <Text style={styles.descricao}>{item.descricao}</Text>
+      <Text style={styles.status}>
+        Status:{" "}
+        <Text style={{ color: item.status_limpeza === "Limpa" ? "green" : "red" }}>
+          {item.status_limpeza}
+        </Text>
+      </Text>
+    </TouchableOpacity>
+  );
+
   return (
     <View style={styles.container}>
-      {salas.length === 0 ? (
-        <Text style={styles.empty}>Nenhuma sala encontrada.</Text>
-      ) : (
-        <FlatList
-          data={salas}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={renderItem}
-          contentContainerStyle={styles.list}
-        />
-      )}
+      <Text style={styles.title}>Lista de Salas</Text>
+      <FlatList
+        data={salas}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={renderSala}
+        contentContainerStyle={{ paddingBottom: 20 }}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f9f9f9", padding: 15 },
-  list: { paddingBottom: 20 },
-  loaderContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
-  empty: { textAlign: "center", marginTop: 20, fontSize: 16, color: "#666" },
-
+  container: {
+    flex: 1,
+    padding: 15,
+    backgroundColor: "#F4F6F9",
+  },
+  loader: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#004A8D",
+    marginBottom: 15,
+    textAlign: "center",
+  },
   card: {
     backgroundColor: "#fff",
     padding: 15,
     borderRadius: 10,
     marginBottom: 12,
-    elevation: 2,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 5,
+    elevation: 3,
   },
-  nome: { fontSize: 18, fontWeight: "bold", marginBottom: 5 },
-  info: { fontSize: 14, color: "#555" },
-  status: { fontSize: 14, fontWeight: "bold", marginTop: 5 },
+  nome: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#004A8D",
+  },
+  descricao: {
+    fontSize: 14,
+    color: "#555",
+    marginVertical: 5,
+  },
+  status: {
+    fontSize: 14,
+    fontWeight: "bold",
+  },
 });

@@ -49,4 +49,5 @@ export type RootStackParamList = {
   TelaPerfil: undefined;
   Salas: undefined;
   RegistrarLimpeza: undefined;
+  DetalhesSalaAdmin: undefined;
 };

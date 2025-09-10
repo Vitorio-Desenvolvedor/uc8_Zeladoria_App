@@ -1,100 +1,145 @@
-import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import React, { useState } from "react";
+import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from "react-native";
 import { useAuth } from "../context/AuthContext";
+import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../routes/types";
+import { Ionicons } from "@expo/vector-icons";
 
-export default function HomeScreen({ navigation }: any) {
+type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, "Home">;
+type HomeScreenRouteProp = RouteProp<RootStackParamList, keyof RootStackParamList>;
+
+export default function HomeScreen() {
   const { user, logout } = useAuth();
+  const navigation = useNavigation<HomeScreenNavigationProp>();
+  const route = useRoute<HomeScreenRouteProp>();
+
+  const [selectedTopButton, setSelectedTopButton] = useState<"Salas" | "RegistrarLimpeza" | "HistoricoLimpezas" | null>(null);
+
+  const getFooterColor = (screenName: keyof RootStackParamList) =>
+    route.name === screenName ? "#FFD700" : "#fff";
+
+  const getTopButtonColor = (buttonName: "Salas" | "RegistrarLimpeza" | "HistoricoLimpezas") =>
+    selectedTopButton === buttonName ? "#004A8D" : "#555";
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Bem-vindo, {user?.username}!</Text>
+    <SafeAreaView style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerText}>Bem-vindo</Text>
+      </View>
 
-      {/* 🔹 Botões principais */}
-      <View style={styles.mainButtons}>
+      {/* Botões principais (topo) */}
+      <View style={styles.topButtons}>
         <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.navigate("Salas")}
+          style={styles.topButton}
+          onPress={() => {
+            setSelectedTopButton("Salas");
+            navigation.navigate("Salas");
+          }}
         >
-          <Text style={styles.buttonText}>Ver Salas</Text>
+          <Ionicons name="business" size={28} color={getTopButtonColor("Salas")} />
+          <Text style={[styles.topButtonLabel, { color: getTopButtonColor("Salas") }]}>Ver Salas</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.navigate("RegistrarLimpeza")}
+          style={styles.topButton}
+          onPress={() => {
+            setSelectedTopButton("RegistrarLimpeza");
+            navigation.navigate("RegistrarLimpeza");
+          }}
         >
-          <Text style={styles.buttonText}>Registrar Limpeza</Text>
+          <Ionicons name="checkmark-done" size={28} color={getTopButtonColor("RegistrarLimpeza")} />
+          <Text style={[styles.topButtonLabel, { color: getTopButtonColor("RegistrarLimpeza") }]}>
+            Registrar Limpeza
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.navigate("Historico")}
+          style={styles.topButton}
+          onPress={() => {
+            setSelectedTopButton("HistoricoLimpezas");
+            navigation.navigate("HistoricoLimpezas");
+          }}
         >
-          <Text style={styles.buttonText}>Histórico de Limpezas</Text>
+          <Ionicons name="time" size={28} color={getTopButtonColor("HistoricoLimpezas")} />
+          <Text style={[styles.topButtonLabel, { color: getTopButtonColor("HistoricoLimpezas") }]}>
+            Histórico
+          </Text>
         </TouchableOpacity>
       </View>
 
-      {/* 🔹 Rodapé fixo */}
+      {/* Espaço central */}
+      <View style={styles.centerContent}>
+        <Text style={styles.centerText}>
+          Escolha uma opção acima para continuar.
+        </Text>
+      </View>
+
+      {/* Rodapé */}
       <View style={styles.footer}>
-        {/* Botão Perfil */}
+        {/* Home */}
         <TouchableOpacity
-          style={[styles.footerButton, { backgroundColor: "#003366" }]}
-          onPress={() => navigation.navigate("Perfil")}
+          style={styles.footerButton}
+          onPress={() => navigation.navigate("Home")}
         >
-          <Text style={styles.footerText}>Perfil</Text>
+          <Ionicons name="home" size={28} color={getFooterColor("Home")} />
+          <Text style={[styles.footerLabel, { color: getFooterColor("Home") }]}>Home</Text>
         </TouchableOpacity>
 
-        {/* Botão Administrativo */}
-        {(user?.is_staff || user?.is_superuser) && (
+        {/* Perfil */}
+        <TouchableOpacity
+          style={styles.footerButton}
+          onPress={() => navigation.navigate("TelaPerfil")}
+        >
+          <Ionicons name="person-circle" size={28} color={getFooterColor("TelaPerfil")} />
+          <Text style={[styles.footerLabel, { color: getFooterColor("TelaPerfil") }]}>Perfil</Text>
+        </TouchableOpacity>
+
+        {/* Administração */}
+        {user?.is_staff && (
           <TouchableOpacity
-            style={[styles.footerButton, { backgroundColor: "#ff9800" }]}
+            style={styles.footerButton}
             onPress={() => navigation.navigate("AdminSalas")}
           >
-            <Text style={styles.footerText}>Administração</Text>
+            <Ionicons name="settings" size={28} color={getFooterColor("AdminSalas")} />
+            <Text style={[styles.footerLabel, { color: getFooterColor("AdminSalas") }]}>
+              Admin
+            </Text>
           </TouchableOpacity>
         )}
 
-        {/* Botão Logout */}
-        <TouchableOpacity
-          style={[styles.footerButton, { backgroundColor: "#dc3545" }]}
-          onPress={logout}
-        >
-          <Text style={styles.footerText}>Sair</Text>
+        {/* Sair */}
+        <TouchableOpacity style={styles.footerButton} onPress={logout}>
+          <Ionicons name="log-out" size={28} color="#E53935" />
+          <Text style={[styles.footerLabel, { color: "#E53935" }]}>Sair</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "space-between", padding: 20, backgroundColor: "#f9f9f9" },
-  title: { fontSize: 22, fontWeight: "bold", marginTop: 20, textAlign: "center" },
-
-  mainButtons: { flex: 1, justifyContent: "center", alignItems: "center" },
-
-  button: {
-    backgroundColor: "#007bff",
-    padding: 15,
-    borderRadius: 8,
-    marginBottom: 15,
-    width: "80%",
-    alignItems: "center",
+  container: { flex: 1, backgroundColor: "#F4F6F9" },
+  header: { backgroundColor: "#004A8D", padding: 20, alignItems: "center" },
+  headerText: { fontSize: 20, color: "#fff", fontWeight: "bold" },
+  topButtons: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginTop: 20,
+    paddingHorizontal: 10,
   },
-  buttonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
-
+  topButton: { flexDirection: "column", alignItems: "center" },
+  topButtonLabel: { fontSize: 12, marginTop: 5, fontWeight: "bold" },
+  centerContent: { flex: 1, justifyContent: "center", alignItems: "center" },
+  centerText: { fontSize: 16, color: "#555", textAlign: "center", paddingHorizontal: 20 },
   footer: {
     flexDirection: "row",
     justifyContent: "space-around",
-    paddingVertical: 15,
-    borderTopWidth: 1,
-    borderColor: "#ccc",
-    backgroundColor: "#fff",
+    backgroundColor: "#004A8D",
+    paddingVertical: 10,
+    paddingBottom: 25,
   },
-  footerButton: {
-    flex: 1,
-    marginHorizontal: 5,
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  footerText: { color: "#fff", fontSize: 14, fontWeight: "bold" },
+  footerButton: { flexDirection: "column", alignItems: "center" },
+  footerLabel: { fontSize: 12, marginTop: 3 },
 });
