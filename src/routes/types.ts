@@ -38,16 +38,17 @@ export interface Limpeza {
 export type RootStackParamList = {
   Login: undefined;
   Home: undefined;
-  RegistroLimpeza: {salaId: number};
-  HistoricoLimpezas: undefined;
-  AdminSalas: undefined;
-  FormSala: { sala?: Sala } | undefined;
-  SalaDetalhes: { salaId: number };
-  Historico: undefined;
-  AdminScreen: undefined;
-  CadastroUsuario: undefined;
-  TelaPerfil: undefined;
   Salas: undefined;
+  SalaDetalhes: { salaId: number };
+  TelaPerfil: undefined;
+  
+  // Rotas Admin
+  AdminSalas: undefined;
+  Historico: undefined;
+  CadastroUsuario: undefined;
+  AdminScreen: undefined;
+  FormSala: undefined;
+  HistoricoLimpezas: undefined;
+  RegistroLimpeza: undefined;
   RegistrarLimpeza: undefined;
-  DetalhesSalaAdmin: undefined;
 };
