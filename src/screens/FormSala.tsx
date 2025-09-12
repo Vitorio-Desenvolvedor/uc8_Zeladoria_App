@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -8,12 +8,12 @@ import {
   ActivityIndicator,
   RefreshControl,
   Alert,
-} from "react-native";
-import axios from "axios";
-import { useAuth } from "../context/AuthContext";
-import { useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../routes/types";
+} from 'react-native';
+import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../routes/types';
 
 type Sala = {
   id: number;
@@ -23,7 +23,7 @@ type Sala = {
   bloco: string;
 };
 
-type NavigationProp = NativeStackNavigationProp<RootStackParamList, "Home">;
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
 export default function FormSala() {
   const { token, user } = useAuth();
@@ -38,7 +38,7 @@ export default function FormSala() {
   const buscarSalas = async () => {
     try {
       setLoading(true);
-      const response = await axios.get("http://127.0.0.1:8000/api/salas/", {
+      const response = await axios.get('http://127.0.0.1:8000/api/salas/', {
         headers: { Authorization: `Token ${token}` },
       });
 
@@ -48,8 +48,8 @@ export default function FormSala() {
       const blocosUnicos: string[] = Array.from(new Set(data.map((s) => s.bloco)));
       setBlocosDisponiveis(blocosUnicos);
     } catch (error: any) {
-      console.error("Erro ao buscar salas:", error.message);
-      Alert.alert("Erro", "Não foi possível carregar as salas.");
+      console.error('Erro ao buscar salas:', error.message);
+      Alert.alert('Erro', 'Não foi possível carregar as salas.');
     } finally {
       setLoading(false);
     }
@@ -73,7 +73,17 @@ export default function FormSala() {
     <TouchableOpacity
       style={styles.card}
       onPress={() =>
-        navigation.navigate("SalaDetalhes", { salaId: item.id }) // Erro Corrigido : "DetalhesSala", dava erro.
+        Alert.alert(
+          'Detalhes da Sala',
+          `Deseja ver detalhes da sala "${item.nome}"?`,
+          [
+            { text: 'Cancelar', style: 'cancel' },
+            {
+              text: 'OK',
+              onPress: () => navigation.navigate('SalaDetalhes', { salaId: item.id }),
+            },
+          ]
+        )
       }
     >
       <Text style={styles.titulo}>{item.nome}</Text>
@@ -105,13 +115,9 @@ export default function FormSala() {
         renderItem={({ item }) => (
           <TouchableOpacity
             style={[styles.bloco, blocoSelecionado === item && styles.blocoSelecionado]}
-            onPress={() =>
-              setBlocoSelecionado(item === blocoSelecionado ? null : item)
-            }
+            onPress={() => setBlocoSelecionado(item === blocoSelecionado ? null : item)}
           >
-            <Text
-              style={[styles.blocoTexto, blocoSelecionado === item && { color: "#fff" }]}
-            >
+            <Text style={[styles.blocoTexto, blocoSelecionado === item && { color: '#fff' }]}>
               {item}
             </Text>
           </TouchableOpacity>
@@ -130,13 +136,13 @@ export default function FormSala() {
         <View style={styles.adminArea}>
           <TouchableOpacity
             style={styles.adminButton}
-            onPress={() => navigation.navigate("AdminSalas")}
+            onPress={() => navigation.navigate('AdminSalas')}
           >
             <Text>⚙️ Gerenciar Salas</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.adminButton}
-            onPress={() => navigation.navigate("Historico")} // Erro corrigido: "TelaHistorico" dava erro.
+            onPress={() => navigation.navigate('Historico')}
           >
             <Text>Ver Histórico</Text>
           </TouchableOpacity>
@@ -147,35 +153,35 @@ export default function FormSala() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: "#F4F6F9" },
-  center: { flex: 1, justifyContent: "center", alignItems: "center" },
-  header: { fontSize: 20, fontWeight: "bold", marginBottom: 10, color: "#004A8D" },
+  container: { flex: 1, padding: 16, backgroundColor: '#F4F6F9' },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  header: { fontSize: 20, fontWeight: 'bold', marginBottom: 10, color: '#004A8D' },
   blocosContainer: { marginBottom: 10 },
   bloco: {
-    backgroundColor: "#ddd",
+    backgroundColor: '#ddd',
     padding: 10,
     borderRadius: 20,
     marginRight: 10,
   },
-  blocoSelecionado: { backgroundColor: "#004A8D" },
-  blocoTexto: { color: "#000" },
+  blocoSelecionado: { backgroundColor: '#004A8D' },
+  blocoTexto: { color: '#000' },
   listaSalas: { paddingBottom: 20 },
   card: {
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     padding: 14,
     borderRadius: 8,
     marginBottom: 10,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 5,
     elevation: 3,
   },
-  titulo: { fontSize: 16, fontWeight: "bold", color: "#004A8D" },
-  adminArea: { marginTop: 20, flexDirection: "row", justifyContent: "space-around" },
+  titulo: { fontSize: 16, fontWeight: 'bold', color: '#004A8D' },
+  adminArea: { marginTop: 20, flexDirection: 'row', justifyContent: 'space-around' },
   adminButton: {
     paddingVertical: 10,
     paddingHorizontal: 15,
-    backgroundColor: "#eee",
+    backgroundColor: '#eee',
     borderRadius: 8,
   },
 });

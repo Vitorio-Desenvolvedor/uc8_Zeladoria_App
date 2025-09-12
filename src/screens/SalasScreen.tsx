@@ -1,11 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  FlatList,
+  ActivityIndicator,
+} from "react-native";
 import { Sala } from "../api/apiTypes";
 import api from "../api/api";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { RootStackParamList } from "../routes/types";
 
-// Tipagem correta da navegação
+// Tipagem da navegação
 type SalasNavigationProp = NavigationProp<RootStackParamList, "Salas">;
 
 export default function SalasScreen() {
@@ -45,7 +52,11 @@ export default function SalasScreen() {
       <Text style={styles.descricao}>{item.descricao}</Text>
       <Text style={styles.status}>
         Status:{" "}
-        <Text style={{ color: item.status_limpeza === "Limpa" ? "green" : "red" }}>
+        <Text
+          style={{
+            color: item.status_limpeza === "Limpa" ? "green" : "red",
+          }}
+        >
           {item.status_limpeza}
         </Text>
       </Text>

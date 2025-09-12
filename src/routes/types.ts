@@ -41,14 +41,16 @@ export type RootStackParamList = {
   Salas: undefined;
   SalaDetalhes: { salaId: number };
   TelaPerfil: undefined;
-  
-  // Rotas Admin
+
+  // Rotas administrativas
   AdminSalas: undefined;
   Historico: undefined;
   CadastroUsuario: undefined;
+  DetalhesSalaAdmin: { salaId: number };
   AdminScreen: undefined;
   FormSala: undefined;
   HistoricoLimpezas: undefined;
   RegistroLimpeza: undefined;
   RegistrarLimpeza: undefined;
 };
+
