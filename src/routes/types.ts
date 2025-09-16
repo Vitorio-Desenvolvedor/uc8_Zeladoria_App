@@ -38,8 +38,8 @@ export interface Limpeza {
 export type RootStackParamList = {
   Login: undefined;
   Home: undefined;
-  Salas: undefined;
-  SalaDetalhes: { salaId: number };
+  Salas: undefined; 
+  SalaDetalhes: { salaId: number }; // ajustando
   TelaPerfil: undefined;
 
   // Rotas administrativas
@@ -51,6 +51,6 @@ export type RootStackParamList = {
   FormSala: undefined;
   HistoricoLimpezas: undefined;
   RegistroLimpeza: undefined;
-  RegistrarLimpeza: undefined;
+  RegistrarLimpeza: {salaId: number};
 };
 

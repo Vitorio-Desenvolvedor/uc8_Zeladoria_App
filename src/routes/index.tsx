@@ -46,7 +46,7 @@ export default function Routes() {
           <>
             {/* 🔹 Rotas acessíveis para todos os usuários */}
             <Stack.Screen name="Home" component={HomeScreen} />
-            <Stack.Screen name="Salas" component={SalasScreen} />
+            <Stack.Screen name="Salas" component={SalasScreen} />  
             <Stack.Screen name="SalaDetalhes" component={SalaDetalhesScreen} />
             <Stack.Screen name="TelaPerfil" component={TelaPerfil} />
 
@@ -55,25 +55,13 @@ export default function Routes() {
               <>
                 <Stack.Screen name="AdminSalas" component={TelaAdminSalas} />
                 <Stack.Screen name="Historico" component={TelaHistorico} />
-                <Stack.Screen
-                  name="CadastroUsuario"
-                  component={TelaCadastroUsuario}
-                />
-                <Stack.Screen
-                  name="DetalhesSalaAdmin"
-                  component={DetalhesSalaScreen}
-                />
+                <Stack.Screen name="CadastroUsuario" component={TelaCadastroUsuario}/>
+                <Stack.Screen name="DetalhesSalaAdmin" component={DetalhesSalaScreen} />
                 <Stack.Screen name="AdminScreen" component={AdminScreen} />
                 <Stack.Screen name="FormSala" component={FormSala} />
-                <Stack.Screen
-                  name="HistoricoLimpezas"
-                  component={HistoricoScreen}
-                />
+                <Stack.Screen name="HistoricoLimpezas" component={HistoricoScreen}/>
                 <Stack.Screen name="RegistroLimpeza" component={LimpezaScreen} />
-                <Stack.Screen
-                  name="RegistrarLimpeza"
-                  component={RegistrarLimpezaScreen}
-                />
+                <Stack.Screen name="RegistrarLimpeza" component={RegistrarLimpezaScreen} />
               </>
             )}
           </>
