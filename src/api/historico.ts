@@ -25,7 +25,7 @@ export const getHistorico = async (token: string) => {
 
 // Buscar histórico por sala
 export const getHistoricoPorSala = async (token: string, salaId: number) => {
-  const response = await api.get<Historico[]>(`/salas/${salaId}/historico/`, {
+  const response = await api.get<Historico[]>(`/Salas/${salaId}/historico/`, {
     headers: { Authorization: `Token ${token}` },
   });
   return response.data;

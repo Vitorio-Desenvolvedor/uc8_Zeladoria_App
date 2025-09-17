@@ -1,6 +1,3 @@
-
-
-// import api from";
 import api from "../api/api";
 import { CredenciaisLogin, RespostaLoginAPI, UserData } from '../api/apiTypes'
 

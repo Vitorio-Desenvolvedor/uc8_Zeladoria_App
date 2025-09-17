@@ -46,7 +46,7 @@ export default function Routes() {
           <>
             {/* 🔹 Rotas acessíveis para todos os usuários */}
             <Stack.Screen name="Home" component={HomeScreen} />
-            <Stack.Screen name="Salas" component={SalasScreen} />  
+            <Stack.Screen name="Salas" component={SalasScreen} /> // Salas
             <Stack.Screen name="SalaDetalhes" component={SalaDetalhesScreen} />
             <Stack.Screen name="TelaPerfil" component={TelaPerfil} />
 

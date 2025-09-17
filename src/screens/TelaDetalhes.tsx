@@ -11,7 +11,7 @@ type TelaDetalhesRouteProp = RouteProp<RootStackParamList, "TelaDetalhes">;
 
 export default function TelaDetalhes() {
   const route = useRoute<TelaDetalhesRouteProp>();
-  const navigation = useNavigation();
+  const navigation = useNavigation(); // possivel erro! 
   const { salaId, token } = route.params;
 
   const [sala, setSala] = useState<any>(null);

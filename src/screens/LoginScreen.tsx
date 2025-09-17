@@ -17,7 +17,7 @@ import { Ionicons } from "@expo/vector-icons"; // Ícones
 
 export default function LoginScreen() {
   const { login, loading, error, user } = useAuth();
-  const navigation = useNavigation();
+  // const navigation = useNavigation();
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -29,13 +29,13 @@ export default function LoginScreen() {
     }
     await login(username, password);
 
-    if (user) {
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "Home" as never }],
-      });
-    }
-  };
+  //   if (user) {
+  //     // navigation.reset({
+  //       index: 0,
+  //       routes: [{ name: "Home" as never }],
+  //     });
+  //   }
+   };
 
   return (
     <ImageBackground
