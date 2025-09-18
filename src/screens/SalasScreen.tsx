@@ -6,11 +6,12 @@ import {
   StyleSheet,
   FlatList,
   ActivityIndicator,
+  Alert,
 } from "react-native";
-import { Sala } from "../api/apiTypes";
 import api from "../api/api";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { RootStackParamList } from "../routes/types";
+import { Sala } from "../api/apiTypes";
 
 // Tipagem da navegação
 type SalasNavigationProp = NavigationProp<RootStackParamList, "Salas">;
@@ -20,19 +21,56 @@ export default function SalasScreen() {
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation<SalasNavigationProp>();
 
+  // Buscar salas
+  const fetchSalas = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get<Sala[]>("/salas/");
+      console.log("Salas carregadas:", response.data);
+      setSalas(response.data);
+    } catch (error: any) {
+      console.error("Erro ao carregar salas:", error.message || error);
+      Alert.alert("Erro", "Não foi possível carregar as salas.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchSalas = async () => {
-      try {
-        const response = await api.get("/salas/");
-        setSalas(response.data);
-      } catch (error) {
-        console.error("Erro ao carregar salas:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchSalas();
   }, []);
+
+  // Criar nova sala
+  const criarSala = () => {
+    navigation.navigate("FormSala", { onSalaCriada: fetchSalas });
+  };
+
+  // Renderizar cada sala
+  const renderSala = ({ item }: { item: Sala }) => (
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => navigation.navigate("SalaDetalhes", { salaId: item.qr_code_id })}
+    >
+      <Text style={styles.nome}>{item.nome_numero}</Text>
+      <Text style={styles.descricao}>{item.descricao || "Sem descrição"}</Text>
+      <Text style={styles.label}>Capacidade: {item.capacidade}</Text>
+      <Text style={styles.status}>
+        Status:{" "}
+        <Text
+          style={{
+            color:
+              item.status_limpeza === "Limpa"
+                ? "green"
+                : item.status_limpeza === "Em Limpeza"
+                ? "#FFD700"
+                : "red",
+          }}
+        >
+          {item.status_limpeza || "Desconhecido"}
+        </Text>
+      </Text>
+    </TouchableOpacity>
+  );
 
   if (loading) {
     return (
@@ -43,35 +81,24 @@ export default function SalasScreen() {
     );
   }
 
-  const renderSala = ({ item }: { item: Sala }) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() => navigation.navigate("SalaDetalhes", { salaId: item.id })}
-    >
-      <Text style={styles.nome}>{item.nome_numero}</Text>
-      <Text style={styles.descricao}>{item.descricao}</Text>
-      <Text style={styles.status}>
-        Status:{" "}
-        <Text
-          style={{
-            color: item.status_limpeza === "Limpa" ? "green" : "red",
-          }}
-        >
-          {item.status_limpeza}
-        </Text>
-      </Text>
-    </TouchableOpacity>
-  );
-
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Lista de Salas</Text>
-      <FlatList
-        data={salas}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={renderSala}
-        contentContainerStyle={{ paddingBottom: 20 }}
-      />
+      <TouchableOpacity style={styles.createButton} onPress={criarSala}>
+        <Text style={styles.createButtonText}>+ Criar Nova Sala</Text>
+      </TouchableOpacity>
+
+      {salas.length === 0 ? (
+        <View style={styles.center}>
+          <Text>Nenhuma sala encontrada.</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={salas}
+          keyExtractor={(item) => item.qr_code_id.toString()}
+          renderItem={renderSala}
+          contentContainerStyle={{ paddingBottom: 20 }}
+        />
+      )}
     </View>
   );
 }
@@ -87,12 +114,22 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  title: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#004A8D",
+  center: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  createButton: {
+    backgroundColor: "#004A8D",
+    padding: 12,
+    borderRadius: 8,
     marginBottom: 15,
-    textAlign: "center",
+    alignItems: "center",
+  },
+  createButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
   },
   card: {
     backgroundColor: "#fff",
@@ -115,8 +152,14 @@ const styles = StyleSheet.create({
     color: "#555",
     marginVertical: 5,
   },
+  label: {
+    fontSize: 14,
+    color: "#333",
+    marginTop: 4,
+  },
   status: {
     fontSize: 14,
     fontWeight: "bold",
+    marginTop: 4,
   },
 });

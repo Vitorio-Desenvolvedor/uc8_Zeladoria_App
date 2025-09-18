@@ -1,29 +1,54 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
-import { api } from "../api/api";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+  ScrollView,
+  Alert,
+} from "react-native";
+import { useRoute, RouteProp } from "@react-navigation/native";
+import { RootStackParamList } from "../routes/types";
+import api from "../api/api";
+import { Sala } from "../api/apiTypes";
+import { useAuth } from "../context/AuthContext";
 
-type Sala = { id: number; nome: string; descricao?: string };
+type SalaDetalhesRouteProp = RouteProp<RootStackParamList, "SalaDetalhes">;
 
-export default function DetalhesSalaScreen({ route }: any) {
+export default function SalaDetalhesScreen() {
+  const route = useRoute<SalaDetalhesRouteProp>();
   const { salaId } = route.params;
+  const { token } = useAuth();
+
   const [sala, setSala] = useState<Sala | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const fetchSala = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get<Sala>(`/salas/${salaId}/`, {
+        headers: {
+          Authorization: token ? `Token ${token}` : "",
+        },
+      });
+      setSala(response.data);
+    } catch (error: any) {
+      console.error("Erro ao carregar detalhes da sala:", error.message);
+      Alert.alert("Erro", "Não foi possível carregar os detalhes da sala.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    (async () => {
-      try {
-        const { data } = await api.get<Sala>(`/api/salas/${salaId}/`);
-        setSala(data);
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [salaId]);
+    fetchSala();
+  }, [salaId, token]);
 
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator />
+        <ActivityIndicator size="large" color="#004A8D" />
+        <Text>Carregando detalhes...</Text>
       </View>
     );
   }
@@ -37,25 +62,27 @@ export default function DetalhesSalaScreen({ route }: any) {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Sala #{sala.id}</Text>
-      <Text style={styles.label}>Nome:</Text>
-      <Text style={styles.value}>{sala.nome}</Text>
-
-      {sala.descricao ? (
-        <>
-          <Text style={styles.label}>Descrição:</Text>
-          <Text style={styles.value}>{sala.descricao}</Text>
-        </>
-      ) : null}
-    </View>
+    <ScrollView style={styles.container}>
+      <Text style={styles.title}>{sala.nome_numero}</Text>
+      <Text style={styles.label}>Descrição:</Text>
+      <Text style={styles.value}>{sala.descricao || "Não informada"}</Text>
+      <Text style={styles.label}>Status:</Text>
+      <Text
+        style={[
+          styles.value,
+          { color: sala.status_limpeza === "Limpa" ? "green" : "red" },
+        ]}
+      >
+        {sala.status_limpeza}
+      </Text>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  center: { flex: 1, alignItems: "center", justifyContent: "center" },
-  container: { flex: 1, padding: 16 },
-  title: { fontSize: 20, fontWeight: "700", marginBottom: 12 },
-  label: { marginTop: 8, fontWeight: "600" },
-  value: { marginTop: 4 },
+  container: { flex: 1, padding: 16, backgroundColor: "#F4F6F9" },
+  center: { flex: 1, justifyContent: "center", alignItems: "center" },
+  title: { fontSize: 22, fontWeight: "bold", marginBottom: 12, color: "#004A8D" },
+  label: { fontWeight: "600", marginTop: 8 },
+  value: { marginTop: 4, fontSize: 16 },
 });

@@ -69,19 +69,48 @@ export default function FormSala() {
     ? salas.filter((s) => s.bloco === blocoSelecionado)
     : salas;
 
+  // Funções de CRUD
+  const editarSala = (sala: Sala) => {
+    navigation.navigate('FormSalaEditar', { sala, onUpdate: buscarSalas });
+  };
+
+  const excluirSala = (salaId: number) => {
+    Alert.alert('Confirmação', 'Deseja realmente excluir esta sala?', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Excluir',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await axios.delete(`http://127.0.0.1:8000/api/salas/${salaId}/`, {
+              headers: { Authorization: `Token ${token}` },
+            });
+            Alert.alert('Sucesso', 'Sala excluída!');
+            buscarSalas();
+          } catch (error: any) {
+            console.error('Erro ao excluir sala:', error.message);
+            Alert.alert('Erro', 'Não foi possível excluir a sala.');
+          }
+        },
+      },
+    ]);
+  };
+
   const renderSala = ({ item }: { item: Sala }) => (
     <TouchableOpacity
       style={styles.card}
       onPress={() =>
         Alert.alert(
           'Detalhes da Sala',
-          `Deseja ver detalhes da sala "${item.nome}"?`,
+          `Escolha uma ação para "${item.nome}"`,
           [
             { text: 'Cancelar', style: 'cancel' },
             {
-              text: 'OK',
+              text: 'Detalhes',
               onPress: () => navigation.navigate('SalaDetalhes', { salaId: item.id }),
             },
+            { text: 'Editar', onPress: () => editarSala(item) },
+            { text: 'Excluir', style: 'destructive', onPress: () => excluirSala(item.id) },
           ]
         )
       }
@@ -136,15 +165,15 @@ export default function FormSala() {
         <View style={styles.adminArea}>
           <TouchableOpacity
             style={styles.adminButton}
-            onPress={() => navigation.navigate('AdminSalas')}
+            onPress={() => navigation.navigate('FormSalaCriar', { onCreate: buscarSalas })}
           >
-            <Text>⚙️ Gerenciar Salas</Text>
+            <Text>➕ Criar Sala</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.adminButton}
             onPress={() => navigation.navigate('Historico')}
           >
-            <Text>Ver Histórico</Text>
+            <Text>📜 Ver Histórico</Text>
           </TouchableOpacity>
         </View>
       )}

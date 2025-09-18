@@ -20,16 +20,15 @@ export interface UserData{
 
 }
 
-export interface Sala{
-    id: number,
-    nome_numero: string,
-    capacidade: number,
-    descricao: string,
-    localizacao: string,
-    status_limpeza: "Limpa" | "Limpeza Pendente",
-    ultima_limpeza_data_hora: null | string,
-    ultima_limpeza_funcionario: null | string
-}
+export type Sala = {
+    qr_code_id: number;        // ID real usado na API
+    nome_numero: string;
+    descricao?: string;
+    capacidade: number;
+    localizacao: string;
+    status_limpeza: "Limpa" | "Suja" | "Em Limpeza";
+  };
+  
 
 export interface newSala{
     nome_numero: string,
