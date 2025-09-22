@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+ import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -45,29 +45,31 @@ export default function SalasScreen() {
     navigation.navigate("FormSala", { onSalaCriada: fetchSalas });
   };
 
+  // 🔹 Função para determinar cor de acordo com o status
+  const getStatusColor = (status: string) => {
+    const s = status?.toLowerCase();
+    if (s.includes("suja")) return "#e53935";           // vermelho
+    if (s.includes("em limpeza")) return "#fb8c00";     // laranja
+    if (s.includes("pendente")) return "#757575";       // cinza
+    if (s.includes("limpa")) return "#43a047";          // verde
+    return "#000"; // fallback
+  };
+
   // Renderizar cada sala
   const renderSala = ({ item }: { item: Sala }) => (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => navigation.navigate("SalaDetalhes", { salaId: item.qr_code_id })}
+      onPress={() =>
+        navigation.navigate("SalaDetalhes", { salaId: item.qr_code_id })
+      }
     >
       <Text style={styles.nome}>{item.nome_numero}</Text>
       <Text style={styles.descricao}>{item.descricao || "Sem descrição"}</Text>
       <Text style={styles.label}>Capacidade: {item.capacidade}</Text>
-      <Text style={styles.status}>
-        Status:{" "}
-        <Text
-          style={{
-            color:
-              item.status_limpeza === "Limpa"
-                ? "green"
-                : item.status_limpeza === "Em Limpeza"
-                ? "#FFD700"
-                : "red",
-          }}
-        >
-          {item.status_limpeza || "Desconhecido"}
-        </Text>
+
+      {/* 🔹 Status colorido */}
+      <Text style={[styles.status, { color: getStatusColor(item.status_limpeza) }]}>
+        {item.status_limpeza || "Status Desconhecido"}
       </Text>
     </TouchableOpacity>
   );
@@ -83,6 +85,7 @@ export default function SalasScreen() {
 
   return (
     <View style={styles.container}>
+      {/* 🔹 Botão Criar Sala */}
       <TouchableOpacity style={styles.createButton} onPress={criarSala}>
         <Text style={styles.createButtonText}>+ Criar Nova Sala</Text>
       </TouchableOpacity>
@@ -158,8 +161,8 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   status: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: "bold",
-    marginTop: 4,
+    marginTop: 6,
   },
 });

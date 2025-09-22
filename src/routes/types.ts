@@ -49,6 +49,7 @@ export type RootStackParamList = {
   DetalhesSalaAdmin: { salaId: number };
   AdminScreen: undefined;
   FormSala: undefined;
+  FormEditSala: undefined;
   HistoricoLimpezas: undefined;
   RegistroLimpeza: undefined;
   RegistrarLimpeza: {salaId: number};

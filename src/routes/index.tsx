@@ -19,6 +19,7 @@ import FormSala from "../screens/FormSala";
 import HistoricoScreen from "../screens/HistoricoScreen";
 import LimpezaScreen from "../screens/LimpezaScreen";
 import RegistrarLimpezaScreen from "../screens/RegistrarLimpezaScreen";
+import FormEditSalaScreen from "../screens/FormEditSalaScreen";
 
 import { AuthContext } from "../context/AuthContext";
 
@@ -66,6 +67,11 @@ export default function Routes() {
                 />
                 <Stack.Screen name="AdminScreen" component={AdminScreen} />
                 <Stack.Screen name="FormSala" component={FormSala} />
+                <Stack.Screen
+                  name="FormEditSala"
+                  component={FormEditSalaScreen}
+                  options={{ title: "Editar Sala" }}
+                />
                 <Stack.Screen
                   name="HistoricoLimpezas"
                   component={HistoricoScreen}
