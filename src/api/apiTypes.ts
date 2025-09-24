@@ -14,16 +14,16 @@ export interface RespostaLoginAPI {
 export interface UserData{
     id: number,
     username: string,
-    email: string,
+    email: string, 
     is_staff: boolean,
     is_superuser: boolean
 
 }
 
 export type Sala = {
-    qr_code_id: number;        // ID real usado na API
-    nome_numero: string;
-    descricao?: string;
+    qr_code_id: number;      
+    nome_numero: string;   
+    descricao?: string;   // Possível ajuste 
     capacidade: number;
     localizacao: string;
     status_limpeza: "Limpa" | "Suja" | "Em Limpeza";

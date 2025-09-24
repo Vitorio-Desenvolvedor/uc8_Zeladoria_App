@@ -11,13 +11,13 @@ import {
 } from "react-native";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { RootStackParamList } from "../routes/types";
-import { Sala } from "../api/apiTypes";
+import { Sala } from "../api/apiTypes"; // Certifique-se que Sala tem id: number
 import api from "../api/api";
 import { useAuth } from "../context/AuthContext";
 
-type AdminNavigationProp = NavigationProp<RootStackParamList, "AdminSalas">;
+type AdminNavigationProp = NavigationProp<RootStackParamList, "Admin">;
 
-export default function TelaAdminSalas() {
+export default function TelaAdmin() {
   const navigation = useNavigation<AdminNavigationProp>();
   const { token } = useAuth();
   const [salas, setSalas] = useState<Sala[]>([]);
@@ -52,7 +52,6 @@ export default function TelaAdminSalas() {
 
   /** ✏️ Editar Sala */
   const handleEditSala = (sala: Sala) => {
-    // Navega para o FormSala passando o ID para edição
     navigation.navigate("FormSala", { salaId: sala.id });
   };
 
@@ -72,7 +71,7 @@ export default function TelaAdminSalas() {
                 headers: { Authorization: `Token ${token}` },
               });
               Alert.alert("Sucesso", "Sala excluída com sucesso!");
-              fetchSalas(); // Recarregar lista
+              fetchSalas();
             } catch (error) {
               console.error("Erro ao excluir sala:", error);
               Alert.alert("Erro", "Não foi possível excluir a sala.");
@@ -93,7 +92,14 @@ export default function TelaAdminSalas() {
           Status:{" "}
           <Text
             style={{
-              color: item.status_limpeza === "Limpa" ? "green" : "red",
+              color:
+                item.status_limpeza === "Limpa"
+                  ? "green"
+                  : item.status_limpeza === "Em Limpeza"
+                  ? "orange"
+                  : item.status_limpeza === "Limpeza Pendente"
+                  ? "gray"
+                  : "red", // Suja
             }}
           >
             {item.status_limpeza}

@@ -100,10 +100,10 @@ export default function HomeScreen() {
         {user?.is_staff && (
           <TouchableOpacity
             style={styles.footerButton}
-            onPress={() => navigation.navigate("AdminSalas")}
+            onPress={() => navigation.navigate("Admin")}
           >
-            <Ionicons name="settings" size={28} color={getFooterColor("AdminSalas")} />
-            <Text style={[styles.footerLabel, { color: getFooterColor("AdminSalas") }]}>
+            <Ionicons name="settings" size={28} color={getFooterColor("Admin")} />
+            <Text style={[styles.footerLabel, { color: getFooterColor("Admin") }]}>
               Admin
             </Text>
           </TouchableOpacity>

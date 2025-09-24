@@ -7,9 +7,12 @@ export type User = {
 
 export interface Sala {
   id: number;
-  nome: string;
+  nome_numero: string;
+  descricao: string;
+  status_limpeza: "Suja" | "Em Limpeza" | "Limpeza Pendente" | "Limpa";
+  ultima_limpeza_data_hora?: string;
+  ultima_limpeza_funcionario?: string;
 }
-
 export interface UserData {
   id: number;
   username: string;
@@ -43,13 +46,12 @@ export type RootStackParamList = {
   TelaPerfil: undefined;
 
   // Rotas administrativas
-  AdminSalas: undefined;
+  Admin: undefined;
   Historico: undefined;
   CadastroUsuario: undefined;
-  DetalhesSalaAdmin: { salaId: number };
   AdminScreen: undefined;
-  FormSala: undefined;
-  FormEditSala: undefined;
+  FormSala: {salaId?: number};
+  FormEditSala: {salaId: number};
   HistoricoLimpezas: undefined;
   RegistroLimpeza: undefined;
   RegistrarLimpeza: {salaId: number};

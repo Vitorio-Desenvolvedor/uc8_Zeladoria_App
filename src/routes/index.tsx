@@ -10,14 +10,12 @@ import SalaDetalhesScreen from "../screens/SalaDetalhesScreen";
 import TelaPerfil from "../screens/TelaPerfil";
 
 // Admin
-import TelaAdminSalas from "../screens/TelaAdminSalas";
 import TelaHistorico from "../screens/TelaHistorico";
 import TelaCadastroUsuario from "../screens/TelaCadastroUsuario";
-import DetalhesSalaScreen from "../screens/DetalhesSalaScreen";
-import AdminScreen from "../screens/AdminScreen";
 import FormSala from "../screens/FormSala";
-import HistoricoScreen from "../screens/HistoricoScreen";
 import LimpezaScreen from "../screens/LimpezaScreen";
+import TelaAdmin from "../screens/TelaAdmin";
+
 import RegistrarLimpezaScreen from "../screens/RegistrarLimpezaScreen";
 import FormEditSalaScreen from "../screens/FormEditSalaScreen";
 
@@ -55,26 +53,17 @@ export default function Routes() {
             {/* Rotas apenas para administradores */}
             {user?.is_staff && (
               <>
-                <Stack.Screen name="AdminSalas" component={TelaAdminSalas} />
                 <Stack.Screen name="Historico" component={TelaHistorico} />
                 <Stack.Screen
                   name="CadastroUsuario"
                   component={TelaCadastroUsuario}
                 />
-                <Stack.Screen
-                  name="DetalhesSalaAdmin"
-                  component={DetalhesSalaScreen}
-                />
-                <Stack.Screen name="AdminScreen" component={AdminScreen} />
+                <Stack.Screen name="Admin" component={TelaAdmin} />
                 <Stack.Screen name="FormSala" component={FormSala} />
-                <Stack.Screen
+                <Stack.Screen 
                   name="FormEditSala"
-                  component={FormEditSalaScreen}
+                  component={FormEditSalaScreen }
                   options={{ title: "Editar Sala" }}
-                />
-                <Stack.Screen
-                  name="HistoricoLimpezas"
-                  component={HistoricoScreen}
                 />
                 <Stack.Screen
                   name="RegistroLimpeza"
