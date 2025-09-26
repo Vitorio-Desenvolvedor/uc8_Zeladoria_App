@@ -118,7 +118,7 @@ export default function TelaAdmin() {
 
         <TouchableOpacity
           style={[styles.actionButton, { backgroundColor: "#E53935" }]}
-          onPress={() => handleDeleteSala(item.id)}
+          onPress={() => handleDeleteSala(item.id)} // tratar Erro 
         >
           <Text style={styles.actionText}>Excluir</Text>
         </TouchableOpacity>
@@ -141,7 +141,7 @@ export default function TelaAdmin() {
 
       <TouchableOpacity
         style={styles.novaSala}
-        onPress={() => navigation.navigate("FormSala")}
+        onPress={() => navigation.navigate("FormSala")} // tratar Erro
       >
         <Text style={styles.novaSalaText}>➕ Cadastrar Nova Sala</Text>
       </TouchableOpacity>

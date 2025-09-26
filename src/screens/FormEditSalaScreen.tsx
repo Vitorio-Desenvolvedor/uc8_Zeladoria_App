@@ -9,11 +9,11 @@ import {
   ScrollView,
 } from "react-native";
 import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
-import { RootStackParamList } from "../routes/types";
+import { RootStackParamList, Sala } from "../routes/types";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import api from "../api/api";
-import { Sala } from "../routes/types";
 
+// Tipagens da Rota
 type FormEditSalaRouteProp = RouteProp<RootStackParamList, "FormEditSala">;
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, "FormEditSala">;
 
@@ -23,28 +23,33 @@ export default function FormEditSalaScreen() {
   const { salaId } = route.params;
 
   const [nome, setNome] = useState("");
-  const [capacidade, setCapacidade] = useState("");
+  const [capacidade, setCapacidade] = useState(""); // sempre string p/ TextInput
   const [localizacao, setLocalizacao] = useState("");
   const [descricao, setDescricao] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Carregar dados atuais da sala
+  //  Buscar dados da sala ao carregar
   useEffect(() => {
     const fetchSala = async () => {
       try {
-        const response = await api.get(`/salas/${salaId}/`);
-        const sala: Sala = response.data;
+        const response = await api.get<Sala>(`/salas/${salaId}/`);
+        const sala = response.data;
+
+        // Garantindo que valores nulos sejam convertidos em strings seguras
         setNome(sala.nome_numero);
-        setCapacidade(String(sala.capacidade));
-        setLocalizacao(String(sala.localizacao));
-        setDescricao(sala.descricao);
+        setCapacidade(sala.capacidade ? String(sala.capacidade) : "");
+        setLocalizacao(sala.localizacao ?? "");
+        setDescricao(sala.descricao ?? "");
       } catch (error) {
+        console.error("Erro ao carregar sala:", error);
         Alert.alert("Erro", "Não foi possível carregar os dados da sala.");
       }
     };
+
     fetchSala();
   }, [salaId]);
 
+  // 🔹 Atualizar sala
   const handleUpdate = async () => {
     if (!nome || !capacidade || !localizacao) {
       Alert.alert("Atenção", "Preencha todos os campos obrigatórios.");
@@ -53,9 +58,10 @@ export default function FormEditSalaScreen() {
 
     try {
       setLoading(true);
+
       await api.put(`/salas/${salaId}/`, {
         nome_numero: nome,
-        capacidade: parseInt(capacidade),
+        capacidade: parseInt(capacidade, 10), // garante número inteiro
         localizacao,
         descricao,
       });
@@ -63,7 +69,7 @@ export default function FormEditSalaScreen() {
       Alert.alert("Sucesso", "Sala atualizada com sucesso!");
       navigation.goBack();
     } catch (error: any) {
-      console.error(error);
+      console.error("Erro ao atualizar sala:", error);
       Alert.alert("Erro", "Não foi possível atualizar a sala.");
     } finally {
       setLoading(false);
@@ -71,7 +77,7 @@ export default function FormEditSalaScreen() {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
       <Text style={styles.title}>Editar Sala</Text>
 
       <TextInput
@@ -109,7 +115,9 @@ export default function FormEditSalaScreen() {
         onPress={handleUpdate}
         disabled={loading}
       >
-        <Text style={styles.buttonText}>{loading ? "Salvando..." : "Salvar Alterações"}</Text>
+        <Text style={styles.buttonText}>
+          {loading ? "Salvando..." : "Salvar Alterações"}
+        </Text>
       </TouchableOpacity>
     </ScrollView>
   );

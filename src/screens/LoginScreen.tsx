@@ -12,7 +12,7 @@ import {
   Alert,
 } from "react-native";
 import { useAuth } from "../context/AuthContext";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native"; // inativo
 import { Ionicons } from "@expo/vector-icons"; // Ícones
 
 export default function LoginScreen() {

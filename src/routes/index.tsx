@@ -60,11 +60,7 @@ export default function Routes() {
                 />
                 <Stack.Screen name="Admin" component={TelaAdmin} />
                 <Stack.Screen name="FormSala" component={FormSala} />
-                <Stack.Screen 
-                  name="FormEditSala"
-                  component={FormEditSalaScreen }
-                  options={{ title: "Editar Sala" }}
-                />
+                <Stack.Screen name="FormEditSala" component={FormEditSalaScreen } options={{ title: "Editar Sala" }} />
                 <Stack.Screen
                   name="RegistroLimpeza"
                   component={LimpezaScreen}

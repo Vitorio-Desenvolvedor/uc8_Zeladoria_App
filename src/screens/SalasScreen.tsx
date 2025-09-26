@@ -42,7 +42,7 @@ export default function SalasScreen() {
 
   // Criar nova sala
   const criarSala = () => {
-    navigation.navigate("FormSala", { onSalaCriada: fetchSalas });
+    navigation.navigate("FormSala", { onSalaCriada: fetchSalas }); // tratar Erro
   };
 
   // 🔹 Função para determinar cor de acordo com o status
@@ -60,7 +60,7 @@ export default function SalasScreen() {
     <TouchableOpacity
       style={styles.card}
       onPress={() =>
-        navigation.navigate("SalaDetalhes", { salaId: item.qr_code_id })
+        navigation.navigate("SalaDetalhes", { salaId: item.qr_code_id }) // Tratar Erro
       }
     >
       <Text style={styles.nome}>{item.nome_numero}</Text>
@@ -97,7 +97,7 @@ export default function SalasScreen() {
       ) : (
         <FlatList
           data={salas}
-          keyExtractor={(item) => item.qr_code_id.toString()}
+          keyExtractor={(item) => item.qr_code_id.toString()} // Tratar Erro
           renderItem={renderSala}
           contentContainerStyle={{ paddingBottom: 20 }}
         />

@@ -46,7 +46,7 @@ export default function HomeScreen() {
           style={styles.topButton}
           onPress={() => {
             setSelectedTopButton("RegistrarLimpeza");
-            navigation.navigate("RegistrarLimpeza");
+            navigation.navigate("RegistrarLimpeza"); // possivél erro 
           }}
         >
           <Ionicons name="checkmark-done" size={28} color={getTopButtonColor("RegistrarLimpeza")} />

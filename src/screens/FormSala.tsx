@@ -71,7 +71,7 @@ export default function FormSala() {
 
   // Funções de CRUD
   const editarSala = (sala: Sala) => {
-    navigation.navigate('FormSalaEditar', { sala, onUpdate: buscarSalas });
+    navigation.navigate('FormSalaEditar', { sala, onUpdate: buscarSalas }); // tratar erro
   };
 
   const excluirSala = (salaId: number) => {
