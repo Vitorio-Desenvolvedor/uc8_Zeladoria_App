@@ -12,7 +12,7 @@ import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
 import { RootStackParamList } from "../routes/types";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import api from "../api/api";
-import { Sala } from "../api/apiTypes";
+import { Sala } from "../routes/types";
 
 type FormEditSalaRouteProp = RouteProp<RootStackParamList, "FormEditSala">;
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, "FormEditSala">;
@@ -36,7 +36,7 @@ export default function FormEditSalaScreen() {
         const sala: Sala = response.data;
         setNome(sala.nome_numero);
         setCapacidade(String(sala.capacidade));
-        setLocalizacao(sala.localizacao);
+        setLocalizacao(String(sala.localizacao));
         setDescricao(sala.descricao);
       } catch (error) {
         Alert.alert("Erro", "Não foi possível carregar os dados da sala.");

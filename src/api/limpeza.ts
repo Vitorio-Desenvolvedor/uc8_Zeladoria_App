@@ -5,7 +5,7 @@ export interface RegistroLimpeza {
   sala: number;
   usuario: number;
   observacao: string;
-  status: string;
+  status: "limpa" | "pendente";
   data_limpeza: string;
 }
 
@@ -18,14 +18,8 @@ export const registrarLimpeza = async (
 ) => {
   const response = await api.post<RegistroLimpeza>(
     "/historico/",
-    {
-      sala: salaId,
-      observacao,
-      status,
-    },
-    {
-      headers: { Authorization: `Token ${token}` },
-    }
+    { sala: salaId, observacao, status },
+    { headers: { Authorization: `Token ${token}` } }
   );
   return response.data;
 };

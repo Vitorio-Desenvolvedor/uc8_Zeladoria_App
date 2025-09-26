@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, FlatList, StyleSheet, ActivityIndicator, Alert } from "react-native";
 import api from "../api/api";
-import { RegistroLimpeza, Sala, Usuario } from "../api/apiTypes";
+import { RegistroLimpeza, Sala, Usuario } from "../routes/types"; // ajuste nescessário 
 
 export default function TelaHistorico() {
   const [historico, setHistorico] = useState<RegistroLimpeza[]>([]);

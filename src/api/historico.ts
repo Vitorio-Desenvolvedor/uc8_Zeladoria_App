@@ -2,14 +2,8 @@ import api from "./api";
 
 export interface Historico {
   id: number;
-  sala: {
-    id: number;
-    nome: string;
-  };
-  usuario: {
-    id: number;
-    username: string;
-  };
+  sala: { id: number; nome: string };
+  usuario: { id: number; username: string };
   observacao: string;
   data_limpeza: string;
   status: string;

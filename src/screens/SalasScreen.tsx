@@ -11,7 +11,7 @@ import {
 import api from "../api/api";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { RootStackParamList } from "../routes/types";
-import { Sala } from "../api/apiTypes";
+import { Sala } from "../routes/types";
 
 // Tipagem da navegação
 type SalasNavigationProp = NavigationProp<RootStackParamList, "Salas">;

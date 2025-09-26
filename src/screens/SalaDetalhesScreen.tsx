@@ -12,7 +12,7 @@ import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../routes/types";
 import api from "../api/api";
-import { Sala } from "../api/apiTypes";
+import { Sala } from "../routes/types";
 import { Ionicons } from "@expo/vector-icons";
 
 // Tipagem de rota e navegação

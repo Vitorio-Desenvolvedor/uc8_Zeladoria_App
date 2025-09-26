@@ -1,34 +1,34 @@
 import api from "./api";
-import { Sala as SalaApi } from "./apiTypes";
+import { SalaAPI, mapSalaApiToSala } from "../services/salasApi";
+import { Sala } from "../routes/types";
 
-// Tipagem da Sala
-export interface SalaCredenciais {
-  id: number;
-  nome: string;
-  descricao: string;
-}
-
-// Listar salas
-export const getSalas = async () => {
-  const response = await api.get<SalaApi[]>("/Salas/");
-  console.log (response)
-  return response.data;
+// Listar salas (GET)
+export const getSalas = async (token: string): Promise<Sala[]> => {
+  const response = await api.get<SalaAPI[]>("/Salas/", {
+    headers: { Authorization: `Token ${token}` },
+  });
+  return response.data.map(mapSalaApiToSala);
 };
 
-
-// Criar sala
-export const createSala = async (token: string, data: Partial<SalaCredenciais>) => {
-  const response = await api.post<SalaCredenciais>("/Salas/", data);
-  return response.data;
+// Criar sala (POST)
+export const createSala = async (token: string, data: Partial<SalaAPI>): Promise<Sala> => {
+  const response = await api.post<SalaAPI>("/Salas/", data, {
+    headers: { Authorization: `Token ${token}` },
+  });
+  return mapSalaApiToSala(response.data);
 };
 
-// Atualizar sala
-export const updateSala = async (token: string, id: number, data: Partial<SalaCredenciais>) => {
-  const response = await api.put<SalaCredenciais>(`/Salas/${id}/`, data);
-  return response.data;
+// Atualizar sala (PUT)
+export const updateSala = async (token: string, id: number, data: Partial<SalaAPI>): Promise<Sala> => {
+  const response = await api.put<SalaAPI>(`/Salas/${id}/`, data, {
+    headers: { Authorization: `Token ${token}` },
+  });
+  return mapSalaApiToSala(response.data);
 };
 
-// Excluir sala
+// Excluir sala (DELETE)
 export const deleteSala = async (token: string, id: number) => {
-  await api.delete(`/Salas/${id}/`);
+  await api.delete(`/Salas/${id}/`, {
+    headers: { Authorization: `Token ${token}` },
+  });
 };

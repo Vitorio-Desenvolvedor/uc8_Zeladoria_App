@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { RootStackParamList } from "../routes/types";
-import { Sala } from "../api/apiTypes"; // Certifique-se que Sala tem id: number
+import { Sala } from "../routes/types"; // Sala tem id: number
 import api from "../api/api";
 import { useAuth } from "../context/AuthContext";
 

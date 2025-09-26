@@ -1,24 +1,53 @@
-export type User = {
+export interface User {
   id: number;
   username: string;
   email: string;
   is_staff: boolean;
-};
-
-export interface Sala {
-  id: number;
-  nome_numero: string;
-  descricao: string;
-  status_limpeza: "Suja" | "Em Limpeza" | "Limpeza Pendente" | "Limpa";
-  ultima_limpeza_data_hora?: string;
-  ultima_limpeza_funcionario?: string;
 }
+
+export interface Usuario {
+  id: number,
+  username: string
+  email: string,
+  is_staff: boolean,
+  is_superuser:boolean
+ }
+
 export interface UserData {
   id: number;
   username: string;
   email: string;
   is_staff: boolean;
   is_superuser: boolean;
+  avatar?: string;
+}
+
+export interface Sala {
+  id: number | string; //
+  qr_code_id?: number | string; // alteração feita
+  nome_numero: string;
+  descricao: string;
+  status_limpeza: "Suja" | "Em Limpeza" | "Limpeza Pendente" | "Limpa";
+  capacidade? : number;
+  localizacao?: string;
+  ultima_limpeza_data_hora?: string | null;
+  ultima_limpeza_funcionario?: string | null;
+  imagem?: string | null;
+}
+
+export interface Limpeza {
+  id: number;
+  sala: Sala;
+  observacao: string;
+  data: string;
+}
+
+export interface RegistroLimpeza {
+id: number;
+sala: Sala | number;
+usuario: Usuario | number;
+observacao: string | null;
+data_hora: string;
 }
 
 export interface AuthContextType {
@@ -30,19 +59,11 @@ export interface AuthContextType {
   error: string | null;
 }
 
-
-export interface Limpeza {
-  id: number;
-  sala: Sala; 
-  observacao: string;
-  data: string;
-}
-
 export type RootStackParamList = {
   Login: undefined;
   Home: undefined;
-  Salas: undefined; 
-  SalaDetalhes: { salaId: number }; // ajustando
+  Salas: undefined;
+  SalaDetalhes: { salaId: number | string };
   TelaPerfil: undefined;
 
   // Rotas administrativas
@@ -50,10 +71,10 @@ export type RootStackParamList = {
   Historico: undefined;
   CadastroUsuario: undefined;
   AdminScreen: undefined;
-  FormSala: {salaId?: number};
-  FormEditSala: {salaId: number};
+  FormSala: { salaId?: number | string };
+  FormEditSala: { salaId: number | string };
+  FormSalaCriar: { onCreate: () => Promise <void> };
   HistoricoLimpezas: undefined;
   RegistroLimpeza: undefined;
-  RegistrarLimpeza: {salaId: number};
+  RegistrarLimpeza: { salaId: number | string };
 };
-
