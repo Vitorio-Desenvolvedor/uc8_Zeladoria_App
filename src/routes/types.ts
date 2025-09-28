@@ -1,3 +1,14 @@
+// src/routes/types.ts
+export interface CredenciaisLogin {
+  username: string;
+  password: string;
+}
+
+export interface RespostaLoginAPI {
+  token: string;
+  user: UserData;
+}
+
 export interface User {
   id: number;
   username: string;
@@ -6,12 +17,12 @@ export interface User {
 }
 
 export interface Usuario {
-  id: number,
-  username: string
-  email: string,
-  is_staff: boolean,
-  is_superuser:boolean
- }
+  id: number;
+  username: string;
+  email: string;
+  is_staff: boolean;
+  is_superuser: boolean;
+}
 
 export interface UserData {
   id: number;
@@ -19,17 +30,20 @@ export interface UserData {
   email: string;
   is_staff: boolean;
   is_superuser: boolean;
-  avatar?: string;
+  avatar?: string | null;
 }
 
 export interface Sala {
-  id: number | string; //
-  qr_code_id?: number | string; // alteração feita
+  qr_code_id: string | number;
+  id: number;
   nome_numero: string;
-  descricao: string;
-  status_limpeza: "Suja" | "Em Limpeza" | "Limpeza Pendente" | "Limpa";
-  capacidade? : number;
-  localizacao?: string;
+  descricao?: string | null;
+  capacidade?: number | null;
+  localizacao?: string | null;
+  validade_limpeza_horas?: number | null;
+  ativa?: boolean;
+  responsaveis?: string[];
+  status_limpeza: "Limpa" | "Suja" | "Em Limpeza" | "Limpeza Pendente";
   ultima_limpeza_data_hora?: string | null;
   ultima_limpeza_funcionario?: string | null;
   imagem?: string | null;
@@ -43,11 +57,11 @@ export interface Limpeza {
 }
 
 export interface RegistroLimpeza {
-id: number;
-sala: Sala | number;
-usuario: Usuario | number;
-observacao: string | null;
-data_hora: string;
+  id: number;
+  sala: Sala | number;
+  usuario: Usuario | number;
+  observacao: string | null;
+  data_hora: string;
 }
 
 export interface AuthContextType {
@@ -63,18 +77,23 @@ export type RootStackParamList = {
   Login: undefined;
   Home: undefined;
   Salas: undefined;
-  SalaDetalhes: { salaId: number | string };
+
+  SalaDetalhes: { salaId: string | number };
+
   TelaPerfil: undefined;
 
-  // Rotas administrativas
   Admin: undefined;
   Historico: undefined;
   CadastroUsuario: undefined;
   AdminScreen: undefined;
-  FormSala: { salaId?: number | string };
-  FormEditSala: { salaId: number | string };
-  FormSalaCriar: { onCreate: () => Promise <void> };
+
+  // Formulários / CRUD de salas
+  FormSala: undefined; // tela de listagem/administrativa
+  FormSalaCriar: { onCreate?: () => Promise<void> } | undefined; // opcional callback
+  FormEditSala: { salaId: string | number };
+
+  // histórico / limpeza
   HistoricoLimpezas: undefined;
   RegistroLimpeza: undefined;
-  RegistrarLimpeza: { salaId: number | string };
+  RegistrarLimpeza: undefined;
 };

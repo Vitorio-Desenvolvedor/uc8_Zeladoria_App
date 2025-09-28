@@ -106,17 +106,13 @@ export default function SalaDetalhesScreen() {
       <Text style={styles.subtitle}>{sala.nome_numero}</Text>
 
       {/* Informações */}
-      <InfoBox label="Localização" value={sala.localizacao} />
-      <InfoBox label="Capacidade" value={`${sala.capacidade} pessoas`} />
-      <InfoBox label="Descrição" value={sala.descricao || "Sem descrição"} />
-      <InfoBox
-        label="Status da Limpeza"
-        value={sala.status_limpeza || "Desconhecido"}
-        valueStyle={{
-          color: statusColors[sala.status_limpeza || ""] || "red",
-          fontWeight: "bold",
-        }}
-      />
+      <InfoBox label="Localização" value={sala.localizacao ?? "N/A"} />
+      <InfoBox label="Capacidade" value={sala.capacidade ?? "N/A"} />
+      <InfoBox label="Descrição" value={sala.descricao ?? "Sem descrição"} />
+      <InfoBox label="Status da Limpeza"
+       value={sala.status_limpeza ?? "Desconhecido"} 
+       valueStyle={{ color: statusColors[sala.status_limpeza ?? ""] || "red", fontWeight: "bold" }}
+        />
       <InfoBox
         label="Última Limpeza"
         value={
@@ -134,7 +130,7 @@ export default function SalaDetalhesScreen() {
       <View style={styles.actions}>
         <TouchableOpacity
           style={[styles.actionButton, { backgroundColor: "rgba(0, 122, 255, 0.15)" }]}
-          onPress={() => navigation.navigate("RegistrarLimpeza", { salaId })}
+          onPress={() => navigation.navigate("RegistrarLimpeza",)}
         >
           <Ionicons name="checkmark-done" size={20} color="#004A8D" />
           <Text style={styles.actionText}>Registrar</Text>

@@ -1,5 +1,5 @@
 import api from "../api/api";
-import { CredenciaisLogin, RespostaLoginAPI, UserData } from '../api/apiTypes'
+import { CredenciaisLogin, RespostaLoginAPI, UserData } from '../routes/types'
 
 export async function realizarLogin(credenciais: CredenciaisLogin):Promise<RespostaLoginAPI> {
     

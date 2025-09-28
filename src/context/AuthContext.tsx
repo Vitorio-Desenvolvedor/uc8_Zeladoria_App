@@ -11,7 +11,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserData | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null); // 🔹 para tratar mensagens de erro
+  const [error, setError] = useState<string | null>(null); //  para tratar mensagens de erro
 
   // 🔹 Função de login real com API
   const login = async (username: string, password: string) => {
@@ -21,14 +21,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const response = await realizarLogin({username, password})
 
       // A API retorna: { token, user_data }
-      const { token, user_data } = response;
+      const { token, user } = response; //ajuste 
 
       await salvarToken(token)
 
       setToken(token);
-      setUser(user_data);
+      setUser(user); // ajuste 
 
-      console.log("Login realizado com sucesso:", user_data);
+      console.log("Login realizado com sucesso:", user); //ajuste 
     } catch (err: any) {
       console.error("Erro no login:", err.response?.data || err.message);
       setError("Usuário ou senha inválidos."); // mensagem de usuário ou senha errados

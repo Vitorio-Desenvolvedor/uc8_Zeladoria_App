@@ -52,7 +52,7 @@ export default function TelaAdmin() {
 
   /** ✏️ Editar Sala */
   const handleEditSala = (sala: Sala) => {
-    navigation.navigate("FormSala", { salaId: sala.id });
+    navigation.navigate("FormSala");
   };
 
   /** ❌ Excluir Sala */
@@ -141,7 +141,7 @@ export default function TelaAdmin() {
 
       <TouchableOpacity
         style={styles.novaSala}
-        onPress={() => navigation.navigate("FormSala")} // tratar Erro
+        onPress={() => navigation.navigate("FormSala" )} // ajustando...
       >
         <Text style={styles.novaSalaText}>➕ Cadastrar Nova Sala</Text>
       </TouchableOpacity>

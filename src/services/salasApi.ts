@@ -1,9 +1,10 @@
+import api from "../api/api";
 import { Sala } from "../routes/types";
-import api from "../api/api"; // sua instância axios
 
-// tipo cru que a API retorna
+/* Tipo cru que a API retorna (adaptável conforme sua API) */
 export type SalaAPI = {
-  qr_code_id: number | string;
+  id: number;
+  qr_code_id: string | number;
   nome_numero: string;
   descricao?: string | null;
   capacidade?: number | null;
@@ -12,37 +13,43 @@ export type SalaAPI = {
   ultima_limpeza_data_hora?: string | null;
   ultima_limpeza_funcionario?: string | null;
   imagem?: string | null;
+  validade_limpeza_horas?: number | null;
+  ativa?: boolean;
+  responsaveis?: string[] | null;
 };
 
-// mapear API -> app
+/* Mapeia a resposta da API para o tipo usado no App */
 export function mapSalaApiToSala(a: SalaAPI): Sala {
   return {
-    id: a.qr_code_id,
+    id: a.id,
+    qr_code_id: a.qr_code_id,
     nome_numero: a.nome_numero,
-    descricao: a.descricao ?? "",
+    descricao: a.descricao ?? null,
     status_limpeza: a.status_limpeza as Sala["status_limpeza"],
-    capacidade: a.capacidade ?? undefined,
-    localizacao: a.localizacao ?? undefined,
+    capacidade: a.capacidade ?? null,
+    localizacao: a.localizacao ?? null,
     ultima_limpeza_data_hora: a.ultima_limpeza_data_hora ?? null,
     ultima_limpeza_funcionario: a.ultima_limpeza_funcionario ?? null,
     imagem: a.imagem ?? null,
-  };
+    validade_limpeza_horas: a.validade_limpeza_horas ?? null,
+    ativa: typeof a.ativa === "boolean" ? a.ativa : undefined,
+    responsaveis: a.responsaveis ?? undefined,
+  } as Sala;
 }
 
 export function mapSalasApiToSalas(arr: SalaAPI[]): Sala[] {
   return arr.map(mapSalaApiToSala);
 }
 
-/** ---- chamadas API seguras ---- */
-
-export async function fetchSalas() {
-  const res = await api.get("/salas/");
-  return mapSalasApiToSalas(res.data as SalaAPI[]);
+/** Chamadas à API */
+export async function fetchSalas(): Promise<Sala[]> {
+  const res = await api.get<SalaAPI[]>("/salas/");
+  return mapSalasApiToSalas(res.data);
 }
 
-export async function fetchSala(id: number | string) {
-  const res = await api.get(`/salas/${id}/`);
-  return mapSalaApiToSala(res.data as SalaAPI);
+export async function fetchSala(id: string | number): Promise<Sala> {
+  const res = await api.get<SalaAPI>(`/salas/${id}/`);
+  return mapSalaApiToSala(res.data);
 }
 
 export async function createSala(
@@ -54,19 +61,12 @@ export async function createSala(
     imagem?: { uri: string; name: string; type: string } | null;
   },
   token?: string
-) {
+): Promise<Sala> {
   const formData = new FormData();
   formData.append("nome_numero", data.nome_numero);
-
-  if (typeof data.capacidade !== "undefined") {
-    formData.append("capacidade", String(data.capacidade));
-  }
-  if (data.localizacao) {
-    formData.append("localizacao", data.localizacao);
-  }
-  if (typeof data.descricao !== "undefined") {
-    formData.append("descricao", String(data.descricao));
-  }
+  if (typeof data.capacidade !== "undefined") formData.append("capacidade", String(data.capacidade));
+  if (data.localizacao) formData.append("localizacao", data.localizacao);
+  if (typeof data.descricao !== "undefined") formData.append("descricao", String(data.descricao));
   if (data.imagem) {
     formData.append("imagem", {
       uri: data.imagem.uri,
@@ -77,30 +77,22 @@ export async function createSala(
 
   const headers: any = {};
   if (token) headers.Authorization = `Token ${token}`;
-
-  const res = await api.post("/salas/", formData, { headers });
-  return mapSalaApiToSala(res.data as SalaAPI);
+  const res = await api.post<SalaAPI>("/salas/", formData, { headers });
+  return mapSalaApiToSala(res.data);
 }
 
 export async function updateSala(
-  id: number | string,
+  id: string | number,
   payload: FormData | { [k: string]: any },
   token?: string
-) {
+): Promise<Sala> {
   const headers: any = {};
   if (token) headers.Authorization = `Token ${token}`;
-
-  // se for FormData, passe diretamente; se for objeto, envie JSON
-  if (payload instanceof FormData) {
-    const res = await api.patch(`/salas/${id}/`, payload, { headers });
-    return mapSalaApiToSala(res.data as SalaAPI);
-  } else {
-    const res = await api.patch(`/salas/${id}/`, payload, { headers });
-    return mapSalaApiToSala(res.data as SalaAPI);
-  }
+  const res = await api.patch<SalaAPI>(`/salas/${id}/`, payload, { headers });
+  return mapSalaApiToSala(res.data);
 }
 
-export async function deleteSala(id: number | string, token?: string) {
+export async function deleteSala(id: string | number, token?: string): Promise<void> {
   const headers: any = {};
   if (token) headers.Authorization = `Token ${token}`;
   await api.delete(`/salas/${id}/`, { headers });

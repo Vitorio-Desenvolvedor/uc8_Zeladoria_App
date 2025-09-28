@@ -17,7 +17,7 @@ export default function HomeScreen() {
   const [selectedTopButton, setSelectedTopButton] = useState<"Salas" | "RegistrarLimpeza" | "HistoricoLimpezas" | null>(null);
 
   const getFooterColor = (screenName: keyof RootStackParamList) =>
-    route.name === screenName ? "#FFD700" : "#fff";
+    route.name === screenName ? "#FFD700" : "#fff"; // editar cor para organizar 
 
   const getTopButtonColor = (buttonName: "Salas" | "RegistrarLimpeza" | "HistoricoLimpezas") =>
     selectedTopButton === buttonName ? "#004A8D" : "#555";
