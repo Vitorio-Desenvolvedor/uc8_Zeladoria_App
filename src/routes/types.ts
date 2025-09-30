@@ -14,6 +14,7 @@ export interface User {
   username: string;
   email: string;
   is_staff: boolean;
+  is_superuser?: boolean;
 }
 
 export interface Usuario {
@@ -33,13 +34,26 @@ export interface UserData {
   avatar?: string | null;
 }
 
-export interface Sala {
-  qr_code_id: string | number;
-  id: number;
+export type SalaAPI = {
+  id?: number; 
+  qr_code_id?: number | string;
   nome_numero: string;
   descricao?: string | null;
   capacidade?: number | null;
   localizacao?: string | null;
+  status_limpeza: "Limpa" | "Suja" | "Em Limpeza" | "Limpeza Pendente";
+  ultima_limpeza_data_hora?: string | null;
+  ultima_limpeza_funcionario?: string | null;
+  imagem?: string | null;
+};
+
+export interface Sala {
+  qr_code_id: string | number;
+  id: number;
+  nome_numero: string;
+  descricao?: string;
+  capacidade?: number;
+  localizacao?: string;
   validade_limpeza_horas?: number | null;
   ativa?: boolean;
   responsaveis?: string[];
@@ -47,6 +61,10 @@ export interface Sala {
   ultima_limpeza_data_hora?: string | null;
   ultima_limpeza_funcionario?: string | null;
   imagem?: string | null;
+}
+
+export interface UserData extends User {
+  is_superuser: boolean; // novo
 }
 
 export interface Limpeza {
@@ -59,8 +77,8 @@ export interface Limpeza {
 export interface RegistroLimpeza {
   id: number;
   sala: Sala | number;
-  usuario: Usuario | number;
-  observacao: string | null;
+  usuario: User | number;
+  observacao?: string | null;
   data_hora: string;
 }
 
@@ -89,8 +107,9 @@ export type RootStackParamList = {
 
   // Formulários / CRUD de salas
   FormSala: undefined; // tela de listagem/administrativa
-  FormSalaCriar: { onCreate?: () => Promise<void> } | undefined; // opcional callback
+  // opcional callback
   FormEditSala: { salaId: string | number };
+  FormSalaCreate: { onCreate?: () => void} | undefined;
 
   // histórico / limpeza
   HistoricoLimpezas: undefined;

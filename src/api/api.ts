@@ -1,43 +1,51 @@
+// src/api/api.ts
 import axios from "axios";
-import { obterToken, removerToken } from "../services/servicoArmazenamento";
+import { obterToken, removerToken } from "../services/servicoArmazenamento"; 
 
-export const api = axios.create({
-  baseURL: "https://zeladoria.tsr.net.br/api",
-  timeout: 5000,
+const api = axios.create({
+  baseURL: "https://zeladoria.tsr.net.br/api", 
+  timeout: 10000,
   headers: {
-    "Content-Type": "application/json",
     Accept: "application/json",
+    "Content-Type": "application/json",
   },
 });
 
+// Request interceptor -> injeta token automaticamente (se disponível)
 api.interceptors.request.use(
   async (config) => {
-    const token = await obterToken();
-    if (token) {
-      config.headers.Authorization = `Token ${token}`;
+    try {
+      const token = await obterToken();
+      if (token && config.headers) {
+        config.headers.Authorization = `Token ${token}`;
+      }
+    } catch (err) {
+      // não fatal
+      console.warn("Erro ao obter token para requisição", err);
     }
     return config;
   },
-  (erro) => Promise.reject(erro)
+  (err) => Promise.reject(err)
 );
 
+// Response interceptor -> trata 401 centralmente
 api.interceptors.response.use(
-  (response) => response,
-  async (erro) => {
-    if (erro.response && erro.response.status === 401) {
+  (resp) => resp,
+  async (error) => {
+    if (error?.response?.status === 401) {
+      // token inválido/expirado
       await removerToken();
-      console.warn("Token expirado ou inválido. Faça login novamente.");
+      console.warn("Token expirado: realize login novamente.");
+
     }
-    return Promise.reject(erro);
+    return Promise.reject(error);
   }
 );
 
+/** setAuthToken útil para testes ou login imediato */
 export function setAuthToken(token?: string | null) {
-  if (token) {
-    api.defaults.headers.common.Authorization = `Token ${token}`;
-  } else {
-    delete api.defaults.headers.common.Authorization;
-  }
+  if (token) api.defaults.headers.common.Authorization = `Token ${token}`;
+  else delete api.defaults.headers.common.Authorization;
 }
 
 export default api;

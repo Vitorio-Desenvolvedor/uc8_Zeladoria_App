@@ -65,7 +65,7 @@ export default function FormSala() {
 
   const criarSala = () => {
     // Navega para a tela de criação (callback opcional)
-    navigation.navigate("FormSalaCriar", { onCreate: carregar });
+    navigation.navigate("FormSalaCreate", { onCreate: carregar });
   };
 
   const editarSala = (sala: Sala) => {

@@ -1,4 +1,4 @@
- import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,10 +8,9 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
-import api from "../api/api";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
-import { RootStackParamList } from "../routes/types";
-import { Sala } from "../routes/types";
+import { RootStackParamList, Sala } from "../routes/types";
+import { getSalas } from "../api/salasApi";
 
 // Tipagem da navegação
 type SalasNavigationProp = NavigationProp<RootStackParamList, "Salas">;
@@ -25,9 +24,8 @@ export default function SalasScreen() {
   const fetchSalas = async () => {
     setLoading(true);
     try {
-      const response = await api.get<Sala[]>("/salas/");
-      console.log("Salas carregadas:", response.data);
-      setSalas(response.data);
+      const data = await getSalas();
+      setSalas(data);
     } catch (error: any) {
       console.error("Erro ao carregar salas:", error.message || error);
       Alert.alert("Erro", "Não foi possível carregar as salas.");
@@ -42,7 +40,7 @@ export default function SalasScreen() {
 
   // Criar nova sala
   const criarSala = () => {
-    navigation.navigate("FormSala", { onSalaCriada: fetchSalas }); // tratar Erro
+    navigation.navigate("FormSala", { onSalaCriada: fetchSalas });
   };
 
   // 🔹 Função para determinar cor de acordo com o status
@@ -60,12 +58,12 @@ export default function SalasScreen() {
     <TouchableOpacity
       style={styles.card}
       onPress={() =>
-        navigation.navigate("SalaDetalhes", { salaId: item.qr_code_id }) // Tratar Erro
+        navigation.navigate("SalaDetalhes", { salaId: item.id }) // usa id unificado
       }
     >
       <Text style={styles.nome}>{item.nome_numero}</Text>
       <Text style={styles.descricao}>{item.descricao || "Sem descrição"}</Text>
-      <Text style={styles.label}>Capacidade: {item.capacidade}</Text>
+      <Text style={styles.label}>Capacidade: {item.capacidade ?? "N/A"}</Text>
 
       {/* 🔹 Status colorido */}
       <Text style={[styles.status, { color: getStatusColor(item.status_limpeza) }]}>
@@ -97,7 +95,7 @@ export default function SalasScreen() {
       ) : (
         <FlatList
           data={salas}
-          keyExtractor={(item) => item.qr_code_id.toString()} // Tratar Erro
+          keyExtractor={(item) => String(item.id)}
           renderItem={renderSala}
           contentContainerStyle={{ paddingBottom: 20 }}
         />
@@ -107,21 +105,9 @@ export default function SalasScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 15,
-    backgroundColor: "#F4F6F9",
-  },
-  loader: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  center: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
+  container: { flex: 1, padding: 15, backgroundColor: "#F4F6F9" },
+  loader: { flex: 1, justifyContent: "center", alignItems: "center" },
+  center: { flex: 1, justifyContent: "center", alignItems: "center" },
   createButton: {
     backgroundColor: "#004A8D",
     padding: 12,
@@ -129,11 +115,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     alignItems: "center",
   },
-  createButtonText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
+  createButtonText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
   card: {
     backgroundColor: "#fff",
     padding: 15,
@@ -145,24 +127,8 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 3,
   },
-  nome: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#004A8D",
-  },
-  descricao: {
-    fontSize: 14,
-    color: "#555",
-    marginVertical: 5,
-  },
-  label: {
-    fontSize: 14,
-    color: "#333",
-    marginTop: 4,
-  },
-  status: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginTop: 6,
-  },
+  nome: { fontSize: 18, fontWeight: "bold", color: "#004A8D" },
+  descricao: { fontSize: 14, color: "#555", marginVertical: 5 },
+  label: { fontSize: 14, color: "#333", marginTop: 4 },
+  status: { fontSize: 16, fontWeight: "bold", marginTop: 6 },
 });

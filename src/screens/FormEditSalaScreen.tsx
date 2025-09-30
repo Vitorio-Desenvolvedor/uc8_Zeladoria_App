@@ -9,43 +9,42 @@ import {
   ScrollView,
 } from "react-native";
 import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
-import { RootStackParamList, Sala } from "../routes/types";
+import { RootStackParamList } from "../routes/types";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import api from "../api/api";
+import SalaAPI from "../api/salasApi"; // 
+import { Sala } from "../routes/types";
 
-// Tipagens da Rota
 type FormEditSalaRouteProp = RouteProp<RootStackParamList, "FormEditSala">;
-type NavigationProp = NativeStackNavigationProp<RootStackParamList, "FormEditSala">;
+type NavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  "FormEditSala"
+>;
 
 export default function FormEditSalaScreen() {
   const route = useRoute<FormEditSalaRouteProp>();
   const navigation = useNavigation<NavigationProp>();
   const { salaId } = route.params;
 
+  // Estados do formulário
   const [nome, setNome] = useState("");
-  const [capacidade, setCapacidade] = useState(""); // sempre string p/ TextInput
+  const [capacidade, setCapacidade] = useState("");
   const [localizacao, setLocalizacao] = useState("");
   const [descricao, setDescricao] = useState("");
   const [loading, setLoading] = useState(false);
 
-  //  Buscar dados da sala ao carregar
+  // 🔹 Carregar dados atuais da sala
   useEffect(() => {
     const fetchSala = async () => {
       try {
-        const response = await api.get<Sala>(`/salas/${salaId}/`);
-        const sala = response.data;
-
-        // Garantindo que valores nulos sejam convertidos em strings seguras
+        const sala: Sala = await SalaAPI.getSalaById(salaId); // ✅ usando SalaAPI
         setNome(sala.nome_numero);
-        setCapacidade(sala.capacidade ? String(sala.capacidade) : "");
-        setLocalizacao(sala.localizacao ?? "");
-        setDescricao(sala.descricao ?? "");
+        setCapacidade(String(sala.capacidade));
+        setLocalizacao(sala.localizacao);
+        setDescricao(sala.descricao || "");
       } catch (error) {
-        console.error("Erro ao carregar sala:", error);
         Alert.alert("Erro", "Não foi possível carregar os dados da sala.");
       }
     };
-
     fetchSala();
   }, [salaId]);
 
@@ -59,9 +58,9 @@ export default function FormEditSalaScreen() {
     try {
       setLoading(true);
 
-      await api.put(`/salas/${salaId}/`, {
+      await SalaAPI.updateSala(salaId, {
         nome_numero: nome,
-        capacidade: parseInt(capacidade, 10), // garante número inteiro
+        capacidade: parseInt(capacidade),
         localizacao,
         descricao,
       });
@@ -69,7 +68,7 @@ export default function FormEditSalaScreen() {
       Alert.alert("Sucesso", "Sala atualizada com sucesso!");
       navigation.goBack();
     } catch (error: any) {
-      console.error("Erro ao atualizar sala:", error);
+      console.error(error);
       Alert.alert("Erro", "Não foi possível atualizar a sala.");
     } finally {
       setLoading(false);
@@ -77,9 +76,10 @@ export default function FormEditSalaScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
+    <ScrollView style={styles.container}>
       <Text style={styles.title}>Editar Sala</Text>
 
+      {/* Nome */}
       <TextInput
         style={styles.input}
         placeholder="Nome ou Número da Sala"
@@ -87,6 +87,7 @@ export default function FormEditSalaScreen() {
         onChangeText={setNome}
       />
 
+      {/* Capacidade */}
       <TextInput
         style={styles.input}
         placeholder="Capacidade"
@@ -95,6 +96,7 @@ export default function FormEditSalaScreen() {
         onChangeText={setCapacidade}
       />
 
+      {/* Localização */}
       <TextInput
         style={styles.input}
         placeholder="Localização"
@@ -102,6 +104,7 @@ export default function FormEditSalaScreen() {
         onChangeText={setLocalizacao}
       />
 
+      {/* Descrição */}
       <TextInput
         style={[styles.input, { height: 80 }]}
         placeholder="Descrição"
@@ -110,6 +113,7 @@ export default function FormEditSalaScreen() {
         multiline
       />
 
+      {/* Botão */}
       <TouchableOpacity
         style={[styles.button, loading && { backgroundColor: "#aaa" }]}
         onPress={handleUpdate}
