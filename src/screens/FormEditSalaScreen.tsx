@@ -36,10 +36,10 @@ export default function FormEditSalaScreen() {
   useEffect(() => {
     const fetchSala = async () => {
       try {
-        const sala: Sala = await SalaAPI.getSalaById(salaId); // ✅ usando SalaAPI
+        const sala: Sala = await SalaAPI.getSalaById(salaId);
         setNome(sala.nome_numero);
         setCapacidade(String(sala.capacidade));
-        setLocalizacao(sala.localizacao);
+        setLocalizacao(String(sala.localizacao));
         setDescricao(sala.descricao || "");
       } catch (error) {
         Alert.alert("Erro", "Não foi possível carregar os dados da sala.");

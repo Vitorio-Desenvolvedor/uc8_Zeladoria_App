@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, FlatList, StyleSheet, ActivityIndicator, Alert } from "react-native";
 import api from "../api/api";
-import { RegistroLimpeza, Sala, Usuario } from "../routes/types"; // ajuste nescessário 
+import { RegistroLimpeza, Sala, User } from "../routes/types"; // ajuste nescessário 
 
 export default function TelaHistorico() {
   const [historico, setHistorico] = useState<RegistroLimpeza[]>([]);
@@ -26,7 +26,7 @@ export default function TelaHistorico() {
 
   const renderItem = ({ item }: { item: RegistroLimpeza }) => {
     const sala = typeof item.sala === "object" ? (item.sala as Sala).nome_numero : `Sala ${item.sala}`;
-    const usuario = typeof item.usuario === "object" ? (item.usuario as Usuario).username : `Usuário ${item.usuario}`;
+    const usuario = typeof item.usuario === "object" ? (item.usuario as User).username : `Usuário ${item.usuario}`;
     const dataFormatada = new Date(item.data_hora).toLocaleString("pt-BR");
 
     return (

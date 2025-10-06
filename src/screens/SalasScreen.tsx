@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+// src/screens/SalasScreen.tsx
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -8,11 +9,10 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
-import { useNavigation, NavigationProp } from "@react-navigation/native";
+import { useNavigation, NavigationProp, useFocusEffect } from "@react-navigation/native";
 import { RootStackParamList, Sala } from "../routes/types";
-import { getSalas } from "../api/salasApi";
+import SalaAPI from "../api/salasApi";
 
-// Tipagem da navegação
 type SalasNavigationProp = NavigationProp<RootStackParamList, "Salas">;
 
 export default function SalasScreen() {
@@ -20,52 +20,60 @@ export default function SalasScreen() {
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation<SalasNavigationProp>();
 
-  // Buscar salas
   const fetchSalas = async () => {
     setLoading(true);
     try {
-      const data = await getSalas();
+      const data = await SalaAPI.getAllSalas(); // usa o wrapper centralizado
       setSalas(data);
     } catch (error: any) {
-      console.error("Erro ao carregar salas:", error.message || error);
+      console.error("Erro ao carregar salas:", error.message ?? error);
       Alert.alert("Erro", "Não foi possível carregar as salas.");
     } finally {
       setLoading(false);
     }
   };
 
+  // carrega ao montar
   useEffect(() => {
     fetchSalas();
   }, []);
 
-  // Criar nova sala
+  // e também recarrega quando a tela recebe foco (ao voltar de FormSala/Edit/etc)
+  useFocusEffect(
+    useCallback(() => {
+      fetchSalas();
+      // não precisamos fazer cleanup
+      return () => {};
+    }, [])
+  );
+
+  // navega para o form de criação (não passamos callback via params)
   const criarSala = () => {
-    navigation.navigate("FormSala", { onSalaCriada: fetchSalas });
+    navigation.navigate("FormSala");
   };
 
-  // 🔹 Função para determinar cor de acordo com o status
-  const getStatusColor = (status: string) => {
-    const s = status?.toLowerCase();
-    if (s.includes("suja")) return "#e53935";           // vermelho
-    if (s.includes("em limpeza")) return "#fb8c00";     // laranja
-    if (s.includes("pendente")) return "#757575";       // cinza
-    if (s.includes("limpa")) return "#43a047";          // verde
-    return "#000"; // fallback
+  const getStatusColor = (status?: string) => {
+    const s = String(status ?? "").toLowerCase();
+    if (s.includes("suja")) return "#e53935"; // vermelho
+    if (s.includes("em limpeza")) return "#fb8c00"; // laranja 
+    if (s.includes("pendente")) return "#757575"; //cinza
+    if (s.includes("limpa")) return "#43a047"; // verde 
+    return "#000";
   };
 
-  // Renderizar cada sala
+  // id de navegação: preferir qr_code_id (UUID) se existir, senão id numérico
+  const getIdForNavigation = (item: Sala) => item.qr_code_id ?? item.id;
+
   const renderSala = ({ item }: { item: Sala }) => (
     <TouchableOpacity
       style={styles.card}
       onPress={() =>
-        navigation.navigate("SalaDetalhes", { salaId: item.id }) // usa id unificado
+        navigation.navigate("SalaDetalhes", { salaId: getIdForNavigation(item) })
       }
     >
       <Text style={styles.nome}>{item.nome_numero}</Text>
       <Text style={styles.descricao}>{item.descricao || "Sem descrição"}</Text>
       <Text style={styles.label}>Capacidade: {item.capacidade ?? "N/A"}</Text>
-
-      {/* 🔹 Status colorido */}
       <Text style={[styles.status, { color: getStatusColor(item.status_limpeza) }]}>
         {item.status_limpeza || "Status Desconhecido"}
       </Text>
@@ -83,7 +91,6 @@ export default function SalasScreen() {
 
   return (
     <View style={styles.container}>
-      {/* 🔹 Botão Criar Sala */}
       <TouchableOpacity style={styles.createButton} onPress={criarSala}>
         <Text style={styles.createButtonText}>+ Criar Nova Sala</Text>
       </TouchableOpacity>
@@ -95,7 +102,7 @@ export default function SalasScreen() {
       ) : (
         <FlatList
           data={salas}
-          keyExtractor={(item) => String(item.id)}
+          keyExtractor={(item) => String(getIdForNavigation(item))}
           renderItem={renderSala}
           contentContainerStyle={{ paddingBottom: 20 }}
         />
@@ -105,8 +112,16 @@ export default function SalasScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 15, backgroundColor: "#F4F6F9" },
-  loader: { flex: 1, justifyContent: "center", alignItems: "center" },
+  container: {
+    flex: 1,
+    padding: 15,
+    backgroundColor: "#F4F6F9",
+  },
+  loader: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
   createButton: {
     backgroundColor: "#004A8D",

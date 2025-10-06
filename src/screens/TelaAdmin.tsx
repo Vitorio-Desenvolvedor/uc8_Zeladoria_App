@@ -20,7 +20,7 @@ type AdminNavigationProp = NavigationProp<RootStackParamList, "Admin">;
 export default function TelaAdmin() {
   const navigation = useNavigation<AdminNavigationProp>();
   const { token } = useAuth();
-  const [salas, setSalas] = useState<Sala[]>([]);
+  const [salas, setSalas] = useState<Sala[]>([]); 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -50,13 +50,13 @@ export default function TelaAdmin() {
     setRefreshing(false);
   };
 
-  /** ✏️ Editar Sala */
-  const handleEditSala = (sala: Sala) => {
-    navigation.navigate("FormSala");
-  };
+  /** Editar Sala */
+const handleEditSala = (sala: Sala) => {
+  navigation.navigate("FormEditSala", { salaId: sala.id });
+};
 
-  /** ❌ Excluir Sala */
-  const handleDeleteSala = (id: number) => {
+
+  const handleDeleteSala = (id: number) => { 
     Alert.alert(
       "Excluir Sala",
       "Tem certeza que deseja excluir esta sala?",
@@ -82,7 +82,7 @@ export default function TelaAdmin() {
     );
   };
 
-  /** 🖼️ Render Item */
+  /**  Render Item */
   const renderSala = ({ item }: { item: Sala }) => (
     <View style={styles.card}>
       <View style={{ flex: 1 }}>
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 10,
     shadowColor: "#000",
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.1, 
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 5,
     elevation: 2,

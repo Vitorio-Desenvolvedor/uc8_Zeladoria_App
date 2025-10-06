@@ -13,7 +13,6 @@ import TelaPerfil from "../screens/TelaPerfil";
 import TelaHistorico from "../screens/TelaHistorico";
 import TelaCadastroUsuario from "../screens/TelaCadastroUsuario";
 import FormSala from "../screens/FormSala";
-import LimpezaScreen from "../screens/LimpezaScreen";
 import TelaAdmin from "../screens/TelaAdmin";
 
 import RegistrarLimpezaScreen from "../screens/RegistrarLimpezaScreen";
@@ -61,10 +60,7 @@ export default function Routes() {
                 <Stack.Screen name="Admin" component={TelaAdmin} />
                 <Stack.Screen name="FormSala" component={FormSala} />
                 <Stack.Screen name="FormEditSala" component={FormEditSalaScreen } options={{ title: "Editar Sala" }} />
-                <Stack.Screen
-                  name="RegistroLimpeza"
-                  component={LimpezaScreen}
-                />
+      
                 <Stack.Screen
                   name="RegistrarLimpeza"
                   component={RegistrarLimpezaScreen}

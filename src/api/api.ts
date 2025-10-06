@@ -2,6 +2,7 @@
 import axios from "axios";
 import { obterToken, removerToken } from "../services/servicoArmazenamento"; 
 
+
 const api = axios.create({
   baseURL: "https://zeladoria.tsr.net.br/api", 
   timeout: 10000,
@@ -28,7 +29,7 @@ api.interceptors.request.use(
   (err) => Promise.reject(err)
 );
 
-// Response interceptor -> trata 401 centralmente
+// Response interceptor -> trata 401 centralmente: erro de credenciais 
 api.interceptors.response.use(
   (resp) => resp,
   async (error) => {

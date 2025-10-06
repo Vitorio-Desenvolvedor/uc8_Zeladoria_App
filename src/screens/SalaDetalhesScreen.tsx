@@ -11,9 +11,10 @@ import {
 import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList, Sala } from "../routes/types";
-import { getSalaById, deleteSala } from "../api/salasAPI";
 import { Ionicons } from "@expo/vector-icons";
+import SalaAPI from "../api/salasApi";
 
+// Tipagem de rota e navegação
 type SalaDetalhesRouteProp = RouteProp<RootStackParamList, "SalaDetalhes">;
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, "SalaDetalhes">;
 
@@ -32,10 +33,11 @@ export default function SalaDetalhesScreen() {
     Suja: "red",
   };
 
+  // Buscar detalhes da sala
   const fetchSalaDetalhes = async () => {
     try {
       setLoading(true);
-      const data = await getSalaById(salaId);
+      const data = await SalaAPI.getSalaById(salaId);
       setSala(data);
     } catch (error: any) {
       console.error("Erro ao carregar detalhes da sala:", error.message);
@@ -49,6 +51,7 @@ export default function SalaDetalhesScreen() {
     fetchSalaDetalhes();
   }, [salaId]);
 
+  // Editar sala
   const editarSala = () => {
     navigation.navigate("FormEditSala", {
       salaId,
@@ -56,6 +59,7 @@ export default function SalaDetalhesScreen() {
     } as any);
   };
 
+  // Excluir sala
   const excluirSala = () => {
     Alert.alert(
       "Excluir Sala",
@@ -67,7 +71,7 @@ export default function SalaDetalhesScreen() {
           style: "destructive",
           onPress: async () => {
             try {
-              await deleteSala(salaId);
+              await SalaAPI.deleteSala(salaId);
               Alert.alert("Sucesso", "Sala excluída com sucesso!");
               navigation.goBack();
             } catch (error: any) {
@@ -99,9 +103,11 @@ export default function SalaDetalhesScreen() {
 
   return (
     <ScrollView style={styles.container}>
+      {/* Título */}
       <Text style={styles.title}>Detalhes da Sala</Text>
       <Text style={styles.subtitle}>{sala.nome_numero}</Text>
 
+      {/* Informações */}
       <InfoBox label="Localização" value={sala.localizacao ?? "N/A"} />
       <InfoBox label="Capacidade" value={sala.capacidade ?? "N/A"} />
       <InfoBox label="Descrição" value={sala.descricao ?? "Sem descrição"} />
@@ -126,25 +132,38 @@ export default function SalaDetalhesScreen() {
         value={sala.ultima_limpeza_funcionario || "N/A"}
       />
 
+      {/* Botões de ação horizontais */}
       <View style={styles.actions}>
+        {/* Registrar Limpeza */}
         <TouchableOpacity
-          style={[styles.actionButton, { backgroundColor: "rgba(0, 122, 255, 0.15)" }]}
-          onPress={() => navigation.navigate("RegistrarLimpeza")}
+          style={[
+            styles.actionButton,
+            { backgroundColor: "rgba(0, 122, 255, 0.15)" },
+          ]}
+          onPress={() => navigation.navigate("RegistrarLimpeza", { salaId })}
         >
           <Ionicons name="checkmark-done" size={20} color="#004A8D" />
           <Text style={styles.actionText}>Registrar</Text>
         </TouchableOpacity>
 
+        {/* Editar Sala */}
         <TouchableOpacity
-          style={[styles.actionButton, { backgroundColor: "rgba(255, 165, 0, 0.15)" }]}
+          style={[
+            styles.actionButton,
+            { backgroundColor: "rgba(255, 165, 0, 0.15)" },
+          ]}
           onPress={editarSala}
         >
           <Ionicons name="create" size={20} color="#FFA500" />
           <Text style={styles.actionText}>Editar</Text>
         </TouchableOpacity>
 
+        {/* Excluir Sala */}
         <TouchableOpacity
-          style={[styles.actionButton, { backgroundColor: "rgba(229, 57, 53, 0.15)" }]}
+          style={[
+            styles.actionButton,
+            { backgroundColor: "rgba(229, 57, 53, 0.15)" },
+          ]}
           onPress={excluirSala}
         >
           <Ionicons name="trash" size={20} color="#E53935" />
@@ -155,6 +174,7 @@ export default function SalaDetalhesScreen() {
   );
 }
 
+// Componente InfoBox
 function InfoBox({
   label,
   value,
@@ -175,6 +195,7 @@ function InfoBox({
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F4F6F9", padding: 20 },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
+
   title: {
     fontSize: 22,
     fontWeight: "bold",
@@ -188,9 +209,11 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: "center",
   },
+
   infoBox: { marginBottom: 15 },
   label: { fontSize: 16, fontWeight: "600", color: "#333" },
   value: { fontSize: 15, color: "#555", marginTop: 3 },
+
   actions: {
     marginTop: 25,
     flexDirection: "row",
@@ -203,5 +226,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     borderRadius: 10,
   },
-  actionText: { marginLeft: 8, fontSize: 14, fontWeight: "600", color: "#333" },
+  actionText: {
+    marginLeft: 8,
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#333",
+  },
 });
