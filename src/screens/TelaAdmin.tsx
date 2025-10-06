@@ -24,7 +24,7 @@ export default function TelaAdmin() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  /** 🔄 Buscar Salas */
+  /** Buscar Salas */
   const fetchSalas = async () => {
     try {
       setLoading(true);
@@ -143,7 +143,7 @@ const handleEditSala = (sala: Sala) => {
         style={styles.novaSala}
         onPress={() => navigation.navigate("FormSala" )} // ajustando...
       >
-        <Text style={styles.novaSalaText}>➕ Cadastrar Nova Sala</Text>
+        <Text style={styles.novaSalaText}>Cadastrar Nova Sala</Text>
       </TouchableOpacity>
 
       <FlatList

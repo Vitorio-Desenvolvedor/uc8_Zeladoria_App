@@ -7,9 +7,11 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  Image,
 } from "react-native";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import * as ImagePicker from "expo-image-picker";
 import { RootStackParamList } from "../routes/types";
 import SalaAPI from "../api/salasApi";
 
@@ -25,8 +27,28 @@ export default function RegistrarLimpezaScreen() {
   const [observacao, setObservacao] = useState("");
   const [funcionario, setFuncionario] = useState("");
   const [loading, setLoading] = useState(false);
+  const [foto, setFoto] = useState<string | null>(null);
 
-  // Função para registrar a limpeza usando SalaAPI
+  // Função para escolher ou tirar foto
+  const handlePickImage = async () => {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert("Permissão necessária", "Precisamos da permissão da câmera para tirar fotos.");
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.7,
+    });
+
+    if (!result.canceled) {
+      setFoto(result.assets[0].uri);
+    }
+  };
+
+  // Registrar limpeza
   const handleRegistrar = async () => {
     if (!funcionario.trim()) {
       Alert.alert("Erro", "Informe o nome do funcionário responsável.");
@@ -36,13 +58,11 @@ export default function RegistrarLimpezaScreen() {
     try {
       setLoading(true);
 
-      await SalaAPI.registrarLimpeza(salaId, observacao, funcionario);
+      // Envia dados para a API (adapte se precisar enviar multipart/form-data)
+      await SalaAPI.registrarLimpeza(salaId, observacao, funcionario, foto);
 
       Alert.alert("Sucesso", "Limpeza registrada com sucesso!", [
-        {
-          text: "OK",
-          onPress: () => navigation.goBack(),
-        },
+        { text: "OK", onPress: () => navigation.goBack() },
       ]);
     } catch (error: any) {
       console.error("Erro ao registrar limpeza:", error.message || error);
@@ -73,6 +93,13 @@ export default function RegistrarLimpezaScreen() {
         multiline
       />
 
+      <Text style={styles.label}>Foto da Limpeza</Text>
+      <TouchableOpacity style={styles.photoButton} onPress={handlePickImage}>
+        <Text style={styles.photoButtonText}>{foto ? "Alterar Foto" : "Tirar Foto"}</Text>
+      </TouchableOpacity>
+
+      {foto && <Image source={{ uri: foto }} style={styles.photoPreview} />}
+
       {loading ? (
         <ActivityIndicator size="large" color="#004A8D" style={{ marginTop: 20 }} />
       ) : (
@@ -85,43 +112,13 @@ export default function RegistrarLimpezaScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F4F6F9",
-    padding: 20,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333",
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 15,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: "#ddd",
-  },
-  button: {
-    backgroundColor: "#004A8D",
-    paddingVertical: 15,
-    borderRadius: 10,
-    alignItems: "center",
-    marginTop: 10,
-  },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#fff",
-  },
+  container: { flex: 1, backgroundColor: "#F4F6F9", padding: 20 },
+  title: { fontSize: 22, fontWeight: "bold", color: "#333", marginBottom: 20, textAlign: "center" },
+  label: { fontSize: 16, fontWeight: "600", color: "#333", marginBottom: 8 },
+  input: { backgroundColor: "#fff", borderRadius: 8, padding: 12, fontSize: 15, marginBottom: 15, borderWidth: 1, borderColor: "#ddd" },
+  button: { backgroundColor: "#004A8D", paddingVertical: 15, borderRadius: 10, alignItems: "center", marginTop: 10 },
+  buttonText: { fontSize: 16, fontWeight: "600", color: "#fff" },
+  photoButton: { backgroundColor: "#007AFF", paddingVertical: 12, borderRadius: 10, alignItems: "center", marginBottom: 10 },
+  photoButtonText: { color: "#fff", fontWeight: "600", fontSize: 15 },
+  photoPreview: { width: "100%", height: 200, borderRadius: 8, marginBottom: 15, resizeMode: "cover" },
 });

@@ -1,4 +1,3 @@
-// src/screens/SalasScreen.tsx
 import React, { useEffect, useState, useCallback } from "react";
 import {
   View,

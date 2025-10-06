@@ -45,26 +45,13 @@ export default function HomeScreen() {
         <TouchableOpacity
           style={styles.topButton}
           onPress={() => {
-            setSelectedTopButton("RegistrarLimpeza");
-            navigation.navigate("RegistrarLimpeza"); // possivél erro 
-          }}
-        >
-          <Ionicons name="checkmark-done" size={28} color={getTopButtonColor("RegistrarLimpeza")} />
-          <Text style={[styles.topButtonLabel, { color: getTopButtonColor("RegistrarLimpeza") }]}>
-            Registrar Limpeza
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.topButton}
-          onPress={() => {
             setSelectedTopButton("HistoricoLimpezas");
             navigation.navigate("HistoricoLimpezas");
           }}
         >
           <Ionicons name="time" size={28} color={getTopButtonColor("HistoricoLimpezas")} />
           <Text style={[styles.topButtonLabel, { color: getTopButtonColor("HistoricoLimpezas") }]}>
-            Histórico
+            Histórico de Limpezas
           </Text>
         </TouchableOpacity>
       </View>

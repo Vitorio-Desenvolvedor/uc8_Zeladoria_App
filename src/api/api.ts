@@ -1,4 +1,3 @@
-// src/api/api.ts
 import axios from "axios";
 import { obterToken, removerToken } from "../services/servicoArmazenamento"; 
 

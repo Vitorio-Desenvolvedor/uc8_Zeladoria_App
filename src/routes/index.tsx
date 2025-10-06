@@ -14,9 +14,10 @@ import TelaHistorico from "../screens/TelaHistorico";
 import TelaCadastroUsuario from "../screens/TelaCadastroUsuario";
 import FormSala from "../screens/FormSala";
 import TelaAdmin from "../screens/TelaAdmin";
-
-import RegistrarLimpezaScreen from "../screens/RegistrarLimpezaScreen";
 import FormEditSalaScreen from "../screens/FormEditSalaScreen";
+
+// Comum (todos os usuários logados)
+import RegistrarLimpezaScreen from "../screens/RegistrarLimpezaScreen";
 
 import { AuthContext } from "../context/AuthContext";
 
@@ -49,6 +50,13 @@ export default function Routes() {
             <Stack.Screen name="SalaDetalhes" component={SalaDetalhesScreen} />
             <Stack.Screen name="TelaPerfil" component={TelaPerfil} />
 
+            {/* Registro de limpeza — todos os usuários podem acessar */}
+            <Stack.Screen
+              name="RegistrarLimpeza"
+              component={RegistrarLimpezaScreen}
+              options={{ title: "Registrar Limpeza" }}
+            />
+
             {/* Rotas apenas para administradores */}
             {user?.is_staff && (
               <>
@@ -58,12 +66,15 @@ export default function Routes() {
                   component={TelaCadastroUsuario}
                 />
                 <Stack.Screen name="Admin" component={TelaAdmin} />
-                <Stack.Screen name="FormSala" component={FormSala} />
-                <Stack.Screen name="FormEditSala" component={FormEditSalaScreen } options={{ title: "Editar Sala" }} />
-      
                 <Stack.Screen
-                  name="RegistrarLimpeza"
-                  component={RegistrarLimpezaScreen}
+                  name="FormSala"
+                  component={FormSala}
+                  options={{ title: "Cadastrar Sala" }}
+                />
+                <Stack.Screen
+                  name="FormEditSala"
+                  component={FormEditSalaScreen}
+                  options={{ title: "Editar Sala" }}
                 />
               </>
             )}
