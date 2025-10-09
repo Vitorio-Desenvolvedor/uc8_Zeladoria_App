@@ -7,87 +7,99 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
-import { RootStackParamList } from "../routes/types";
+import { RootStackParamList, Sala } from "../routes/types";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import SalaAPI from "../api/salasApi"; // 
-import { Sala } from "../routes/types";
+import SalaAPI from "../api/salasApi";
 
 type FormEditSalaRouteProp = RouteProp<RootStackParamList, "FormEditSala">;
-type NavigationProp = NativeStackNavigationProp<
-  RootStackParamList,
-  "FormEditSala"
->;
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, "FormEditSala">;
 
 export default function FormEditSalaScreen() {
   const route = useRoute<FormEditSalaRouteProp>();
   const navigation = useNavigation<NavigationProp>();
   const { salaId } = route.params;
 
-  // Estados do formulário
   const [nome, setNome] = useState("");
   const [capacidade, setCapacidade] = useState("");
   const [localizacao, setLocalizacao] = useState("");
   const [descricao, setDescricao] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingSala, setLoadingSala] = useState(true);
 
-  // 🔹 Carregar dados atuais da sala
+  // Buscar dados da sala ao montar o componente
   useEffect(() => {
     const fetchSala = async () => {
       try {
+        setLoadingSala(true);
         const sala: Sala = await SalaAPI.getSalaById(salaId);
+
         setNome(sala.nome_numero);
-        setCapacidade(String(sala.capacidade));
-        setLocalizacao(String(sala.localizacao));
-        setDescricao(sala.descricao || "");
+        setCapacidade(sala.capacidade ? String(sala.capacidade) : "");
+        setLocalizacao(sala.localizacao ?? "");
+        setDescricao(sala.descricao ?? "");
       } catch (error) {
+        console.error("Erro ao obter sala:", error);
         Alert.alert("Erro", "Não foi possível carregar os dados da sala.");
+        navigation.goBack();
+      } finally {
+        setLoadingSala(false);
       }
     };
     fetchSala();
   }, [salaId]);
 
-  // 🔹 Atualizar sala
+  // Atualizar sala
   const handleUpdate = async () => {
-    if (!nome || !capacidade || !localizacao) {
-      Alert.alert("Atenção", "Preencha todos os campos obrigatórios.");
+    if (!nome || !localizacao) {
+      Alert.alert("Atenção", "Preencha os campos obrigatórios.");
       return;
     }
 
     try {
       setLoading(true);
 
-      await SalaAPI.updateSala(salaId, {
+      const payload: Partial<Sala> = {
         nome_numero: nome,
-        capacidade: parseInt(capacidade),
+        capacidade: capacidade ? parseInt(capacidade, 10) : undefined,
         localizacao,
         descricao,
-      });
+      };
 
+      await SalaAPI.updateSala(salaId, payload as any);
       Alert.alert("Sucesso", "Sala atualizada com sucesso!");
       navigation.goBack();
     } catch (error: any) {
-      console.error(error);
+      console.error(
+        "Erro ao atualizar sala:",
+        error.response?.data || error.message || error
+      );
       Alert.alert("Erro", "Não foi possível atualizar a sala.");
     } finally {
       setLoading(false);
     }
   };
 
+  if (loadingSala) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color="#004A8D" />
+      </View>
+    );
+  }
+
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
       <Text style={styles.title}>Editar Sala</Text>
 
-      {/* Nome */}
       <TextInput
         style={styles.input}
         placeholder="Nome ou Número da Sala"
         value={nome}
         onChangeText={setNome}
       />
-
-      {/* Capacidade */}
       <TextInput
         style={styles.input}
         placeholder="Capacidade"
@@ -95,25 +107,20 @@ export default function FormEditSalaScreen() {
         keyboardType="numeric"
         onChangeText={setCapacidade}
       />
-
-      {/* Localização */}
       <TextInput
         style={styles.input}
         placeholder="Localização"
         value={localizacao}
         onChangeText={setLocalizacao}
       />
-
-      {/* Descrição */}
       <TextInput
-        style={[styles.input, { height: 80 }]}
+        style={[styles.input, { height: 100 }]}
         placeholder="Descrição"
         value={descricao}
         onChangeText={setDescricao}
         multiline
       />
 
-      {/* Botão */}
       <TouchableOpacity
         style={[styles.button, loading && { backgroundColor: "#aaa" }]}
         onPress={handleUpdate}
@@ -128,8 +135,17 @@ export default function FormEditSalaScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: "#F4F6F9" },
-  title: { fontSize: 20, fontWeight: "bold", marginBottom: 20, color: "#333" },
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: "#F4F6F9",
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 20,
+    color: "#333",
+  },
   input: {
     backgroundColor: "#fff",
     borderRadius: 8,
@@ -144,5 +160,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
   },
-  buttonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
 });

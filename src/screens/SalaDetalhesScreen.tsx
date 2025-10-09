@@ -140,7 +140,12 @@ export default function SalaDetalhesScreen() {
             styles.actionButton,
             { backgroundColor: "rgba(0, 122, 255, 0.15)" },
           ]}
-          onPress={() => navigation.navigate("RegistrarLimpeza", { salaId })}
+          onPress={() =>
+            navigation.navigate(
+              "RegistrarLimpeza",
+              { salaId, onGoBack: fetchSalaDetalhes } as any
+            )
+          }
         >
           <Ionicons name="checkmark-done" size={20} color="#004A8D" />
           <Text style={styles.actionText}>Registrar</Text>

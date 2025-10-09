@@ -1,87 +1,58 @@
-import api from "./api"; // instância do axios já configurada
+import api from "./api"; 
 import { Sala } from "../routes/types";
 
 const SalaAPI = {
-  //  Buscar todas as salas
+  // Buscar todas as salas
   async getAllSalas(): Promise<Sala[]> {
-    try {
-      const response = await api.get("/salas/");
-      return response.data;
-    } catch (error: any) {
-      console.error("Erro ao buscar salas:", error.message || error);
-      throw error;
-    }
+    const response = await api.get("/salas/");
+    return response.data;
   },
 
-  // Buscar sala por ID
   async getSalaById(id: string | number): Promise<Sala> {
-    try {
-      const response = await api.get(`/salas/${id}/`);
-      return response.data;
-    } catch (error: any) {
-      console.error(`Erro ao buscar sala com ID ${id}:`, error.message || error);
-      throw error;
-    }
+    const response = await api.get(`/salas/${id}/`);
+    return response.data;
   },
 
-  //  Criar nova sala
-  async createSala(newSala: Partial<Sala>): Promise<Sala> {
-    try {
-      const response = await api.post("/salas/", newSala);
-      return response.data;
-    } catch (error: any) {
-      console.error("Erro ao criar sala:", error.message || error);
-      throw error;
-    }
+  // Criar nova sala 
+  async createSala(payload: Partial<Sala>): Promise<Sala> {
+    const response = await api.post("/salas/", payload);
+    return response.data;
   },
 
-  //  Atualizar sala (edição completa ou parcial)
-  async updateSala(
-    id: string | number,
-    updatedSala: Partial<Sala>
-  ): Promise<Sala> {
-    try {
-      const response = await api.put(`/salas/${id}/`, updatedSala);
-      return response.data;
-    } catch (error: any) {
-      console.error(`Erro ao atualizar sala ${id}:`, error.message || error);
-      throw error;
-    }
+  // Atualizar sala 
+  async updateSala(id: string | number, payload: Partial<Sala>): Promise<Sala> {
+    const response = await api.patch(`/salas/${id}/`, payload);
+    return response.data;
   },
 
-  //  Excluir sala
+  // Excluir sala
   async deleteSala(id: string | number): Promise<void> {
-    try {
-      await api.delete(`/salas/${id}/`);
-    } catch (error: any) {
-      console.error(`Erro ao excluir sala ${id}:`, error.message || error);
-      throw error;
-    }
+    await api.delete(`/salas/${id}/`);
   },
 
-  //  Registrar limpeza (recomendado PATCH para atualizar só alguns campos)
-  async registrarLimpeza(
-    id: string | number,
-    observacao: string,
-    funcionario: string
-  ): Promise<Sala> {
-    try {
-      const payload = {
-        status_limpeza: "Limpa",
-        ultima_limpeza_data_hora: new Date().toISOString(),
-        ultima_limpeza_funcionario: funcionario,
-        observacao,
-      };
+  async registrarLimpeza(id: string | number, observacao: string, funcionario: string, fotoUri?: string | null) {
+    const payload: any = {
+      observacoes: observacao,
+      funcionario_responsavel: funcionario,
+    };
 
-      const response = await api.patch(`/salas/${id}/`, payload);
-      return response.data;
-    } catch (error: any) {
-      console.error(
-        `Erro ao registrar limpeza da sala ${id}:`,
-        error.message || error
-      );
-      throw error;
+    if (!fotoUri) {
+      const res = await api.post(`/salas/${id}/concluir_limpeza/`, payload);
+      return res.data;
     }
+    const formData = new FormData();
+    formData.append("registro_limpeza", String(id)); 
+    formData.append("imagem", {
+      uri: fotoUri,
+      name: "foto.jpg",
+      type: "image/jpeg",
+    } as any);
+
+    await api.post("/fotos_limpeza/", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    const res = await api.post(`/salas/${id}/concluir_limpeza/`, payload);
+    return res.data;
   },
 };
 

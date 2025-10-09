@@ -6,7 +6,7 @@ import { Sala, SalaAPI } from "../routes/types";
  */
 export function mapSalaApiToSala(a: SalaAPI): Sala {
   // preferimos qr_code_id se presente (string UUID ou número)
-  const primaryId = a.qr_code_id ?? a.id ?? Math.random(); // fallback raro
+  const primaryId = a.qr_code_id ?? a.id ?? Math.random();
   return {
     id: primaryId,
     qr_code_id: a.qr_code_id ?? a.id,

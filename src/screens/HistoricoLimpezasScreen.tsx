@@ -16,7 +16,7 @@ export default function HistoricoLimpezasScreen() {
   useEffect(() => {
     const fetchHistorico = async () => {
       try {
-        // ✅ Corrigido endpoint (removido /api extra)
+        //  Corrigido endpoint (removido /api extra)
         const res = await api.get("/historico/");
         setHistorico(res.data);
       } catch (error) {

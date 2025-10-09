@@ -15,7 +15,6 @@ import * as ImagePicker from "expo-image-picker";
 import { RootStackParamList } from "../routes/types";
 import SalaAPI from "../api/salasApi";
 
-// Tipagem das rotas
 type RegistrarLimpezaRouteProp = RouteProp<RootStackParamList, "RegistrarLimpeza">;
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, "RegistrarLimpeza">;
 
@@ -26,21 +25,20 @@ export default function RegistrarLimpezaScreen() {
 
   const [observacao, setObservacao] = useState("");
   const [funcionario, setFuncionario] = useState("");
-  const [loading, setLoading] = useState(false);
   const [foto, setFoto] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  // Função para escolher ou tirar foto
   const handlePickImage = async () => {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) {
-      Alert.alert("Permissão necessária", "Precisamos da permissão da câmera para tirar fotos.");
+      Alert.alert("Permissão negada", "Autorize o uso da câmera para continuar.");
       return;
     }
 
     const result = await ImagePicker.launchCameraAsync({
       allowsEditing: true,
       aspect: [4, 3],
-      quality: 0.7,
+      quality: 0.8,
     });
 
     if (!result.canceled) {
@@ -48,7 +46,6 @@ export default function RegistrarLimpezaScreen() {
     }
   };
 
-  // Registrar limpeza
   const handleRegistrar = async () => {
     if (!funcionario.trim()) {
       Alert.alert("Erro", "Informe o nome do funcionário responsável.");
@@ -57,16 +54,16 @@ export default function RegistrarLimpezaScreen() {
 
     try {
       setLoading(true);
-
-      // Envia dados para a API (adapte se precisar enviar multipart/form-data)
       await SalaAPI.registrarLimpeza(salaId, observacao, funcionario, foto);
-
       Alert.alert("Sucesso", "Limpeza registrada com sucesso!", [
         { text: "OK", onPress: () => navigation.goBack() },
       ]);
     } catch (error: any) {
-      console.error("Erro ao registrar limpeza:", error.message || error);
-      Alert.alert("Erro", "Não foi possível registrar a limpeza.");
+      console.error("Erro ao registrar limpeza:", error.response?.data || error.message);
+      Alert.alert(
+        "Erro",
+        "Não foi possível registrar a limpeza. Verifique os dados e tente novamente."
+      );
     } finally {
       setLoading(false);
     }
@@ -113,12 +110,44 @@ export default function RegistrarLimpezaScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F4F6F9", padding: 20 },
-  title: { fontSize: 22, fontWeight: "bold", color: "#333", marginBottom: 20, textAlign: "center" },
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 20,
+    textAlign: "center",
+  },
   label: { fontSize: 16, fontWeight: "600", color: "#333", marginBottom: 8 },
-  input: { backgroundColor: "#fff", borderRadius: 8, padding: 12, fontSize: 15, marginBottom: 15, borderWidth: 1, borderColor: "#ddd" },
-  button: { backgroundColor: "#004A8D", paddingVertical: 15, borderRadius: 10, alignItems: "center", marginTop: 10 },
+  input: {
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 15,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: "#ddd",
+  },
+  button: {
+    backgroundColor: "#004A8D",
+    paddingVertical: 15,
+    borderRadius: 10,
+    alignItems: "center",
+    marginTop: 10,
+  },
   buttonText: { fontSize: 16, fontWeight: "600", color: "#fff" },
-  photoButton: { backgroundColor: "#007AFF", paddingVertical: 12, borderRadius: 10, alignItems: "center", marginBottom: 10 },
+  photoButton: {
+    backgroundColor: "#007AFF",
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: "center",
+    marginBottom: 10,
+  },
   photoButtonText: { color: "#fff", fontWeight: "600", fontSize: 15 },
-  photoPreview: { width: "100%", height: 200, borderRadius: 8, marginBottom: 15, resizeMode: "cover" },
+  photoPreview: {
+    width: "100%",
+    height: 200,
+    borderRadius: 8,
+    marginBottom: 15,
+    resizeMode: "cover",
+  },
 });

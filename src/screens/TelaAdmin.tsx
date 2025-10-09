@@ -2,17 +2,16 @@ import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   FlatList,
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  StyleSheet,
   RefreshControl,
 } from "react-native";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
-import { RootStackParamList } from "../routes/types";
-import { Sala } from "../routes/types"; // Sala tem id: number
-import api from "../api/api";
+import { RootStackParamList, Sala } from "../routes/types";
+import SalaAPI from "../api/salasApi";
 import { useAuth } from "../context/AuthContext";
 
 type AdminNavigationProp = NavigationProp<RootStackParamList, "Admin">;
@@ -20,18 +19,16 @@ type AdminNavigationProp = NavigationProp<RootStackParamList, "Admin">;
 export default function TelaAdmin() {
   const navigation = useNavigation<AdminNavigationProp>();
   const { token } = useAuth();
-  const [salas, setSalas] = useState<Sala[]>([]); 
+  const [salas, setSalas] = useState<Sala[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  /** Buscar Salas */
+  // Buscar todas as salas
   const fetchSalas = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const response = await api.get("/salas/", {
-        headers: { Authorization: `Token ${token}` },
-      });
-      setSalas(response.data);
+      const data = await SalaAPI.getAllSalas();
+      setSalas(data);
     } catch (error) {
       console.error("Erro ao carregar salas:", error);
       Alert.alert("Erro", "Não foi possível carregar as salas.");
@@ -44,87 +41,40 @@ export default function TelaAdmin() {
     fetchSalas();
   }, []);
 
+  // Atualizar lista via pull-to-refresh
   const onRefresh = async () => {
     setRefreshing(true);
     await fetchSalas();
     setRefreshing(false);
   };
 
-  /** Editar Sala */
-const handleEditSala = (sala: Sala) => {
-  navigation.navigate("FormEditSala", { salaId: sala.id });
-};
-
-
-  const handleDeleteSala = (id: number) => { 
-    Alert.alert(
-      "Excluir Sala",
-      "Tem certeza que deseja excluir esta sala?",
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Excluir",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await api.delete(`/salas/${id}/`, {
-                headers: { Authorization: `Token ${token}` },
-              });
-              Alert.alert("Sucesso", "Sala excluída com sucesso!");
-              fetchSalas();
-            } catch (error) {
-              console.error("Erro ao excluir sala:", error);
-              Alert.alert("Erro", "Não foi possível excluir a sala.");
-            }
-          },
-        },
-      ]
-    );
+  // Navegar para edição de sala
+  const handleEditSala = (s: Sala) => {
+    const salaId = s.qr_code_id ?? s.id;
+    navigation.navigate("FormEditSala", { salaId } as any);
   };
 
-  /**  Render Item */
-  const renderSala = ({ item }: { item: Sala }) => (
-    <View style={styles.card}>
-      <View style={{ flex: 1 }}>
-        <Text style={styles.nome}>{item.nome_numero}</Text>
-        <Text style={styles.descricao}>{item.descricao || "Sem descrição"}</Text>
-        <Text style={styles.status}>
-          Status:{" "}
-          <Text
-            style={{
-              color:
-                item.status_limpeza === "Limpa"
-                  ? "green"
-                  : item.status_limpeza === "Em Limpeza"
-                  ? "orange"
-                  : item.status_limpeza === "Limpeza Pendente"
-                  ? "gray"
-                  : "red", // Suja
-            }}
-          >
-            {item.status_limpeza}
-          </Text>
-        </Text>
-      </View>
-
-      {/* Botões de Ação */}
-      <View style={styles.actions}>
-        <TouchableOpacity
-          style={[styles.actionButton, { backgroundColor: "#004A8D" }]}
-          onPress={() => handleEditSala(item)}
-        >
-          <Text style={styles.actionText}>Editar</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.actionButton, { backgroundColor: "#E53935" }]}
-          onPress={() => handleDeleteSala(item.id)} // tratar Erro 
-        >
-          <Text style={styles.actionText}>Excluir</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+  // Excluir sala
+  const handleDeleteSala = (s: Sala) => {
+    const idForDelete = s.qr_code_id ?? s.id;
+    Alert.alert("Excluir Sala", "Tem certeza que deseja excluir esta sala?", [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Excluir",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await SalaAPI.deleteSala(idForDelete);
+            Alert.alert("Sucesso", "Sala excluída com sucesso!");
+            fetchSalas();
+          } catch (error) {
+            console.error("Erro ao excluir sala:", error);
+            Alert.alert("Erro", "Não foi possível excluir a sala.");
+          }
+        },
+      },
+    ]);
+  };
 
   if (loading) {
     return (
@@ -141,15 +91,46 @@ const handleEditSala = (sala: Sala) => {
 
       <TouchableOpacity
         style={styles.novaSala}
-        onPress={() => navigation.navigate("FormSala" )} // ajustando...
+        onPress={() =>
+          navigation.navigate(
+            "FormSala",
+            { onSalaCriada: fetchSalas } as any
+          )
+        }
       >
-        <Text style={styles.novaSalaText}>Cadastrar Nova Sala</Text>
+        <Text style={styles.novaSalaText}>➕ Cadastrar Nova Sala</Text>
       </TouchableOpacity>
 
       <FlatList
         data={salas}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={renderSala}
+        keyExtractor={(item) => String(item.qr_code_id ?? item.id)}
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.nome}>{item.nome_numero}</Text>
+              <Text style={styles.descricao}>
+                {item.descricao || "Sem descrição"}
+              </Text>
+              <Text style={styles.status}>Status: {item.status_limpeza}</Text>
+            </View>
+
+            <View style={styles.actions}>
+              <TouchableOpacity
+                style={[styles.actionButton, { backgroundColor: "#004A8D" }]}
+                onPress={() => handleEditSala(item)}
+              >
+                <Text style={styles.actionText}>Editar</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.actionButton, { backgroundColor: "#E53935" }]}
+                onPress={() => handleDeleteSala(item)}
+              >
+                <Text style={styles.actionText}>Excluir</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
         contentContainerStyle={{ paddingBottom: 20 }}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -160,8 +141,16 @@ const handleEditSala = (sala: Sala) => {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: "#F4F6F9" },
-  center: { flex: 1, justifyContent: "center", alignItems: "center" },
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: "#F4F6F9",
+  },
+  center: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   title: {
     fontSize: 22,
     fontWeight: "bold",
@@ -176,7 +165,11 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     alignItems: "center",
   },
-  novaSalaText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
+  novaSalaText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
   card: {
     backgroundColor: "#fff",
     flexDirection: "row",
@@ -186,7 +179,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 10,
     shadowColor: "#000",
-    shadowOpacity: 0.1, 
+    shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 5,
     elevation: 2,
