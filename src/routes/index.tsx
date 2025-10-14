@@ -47,7 +47,7 @@ export default function Routes() {
             {/* Rotas comuns a todos os usuários logados */}
             <Stack.Screen name="Home" component={HomeScreen} />
             <Stack.Screen name="Salas" component={SalasScreen} />
-            <Stack.Screen name="SalaDetalhes" component={SalaDetalhesScreen} />
+            <Stack.Screen name="SalaDetalhes" component={SalaDetalhesScreen} options={{title: "Sala Detatlhes"}} />
             <Stack.Screen name="TelaPerfil" component={TelaPerfil} />
 
             {/* Registro de limpeza — todos os usuários podem acessar */}

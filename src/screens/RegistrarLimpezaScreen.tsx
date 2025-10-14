@@ -47,27 +47,35 @@ export default function RegistrarLimpezaScreen() {
   };
 
   const handleRegistrar = async () => {
-    if (!funcionario.trim()) {
-      Alert.alert("Erro", "Informe o nome do funcionário responsável.");
-      return;
-    }
+  if (!foto) {
+    Alert.alert("Erro", "Tire ao menos uma foto para comprovação.");
+    return;
+  }
 
-    try {
-      setLoading(true);
-      await SalaAPI.registrarLimpeza(salaId, observacao, funcionario, foto);
-      Alert.alert("Sucesso", "Limpeza registrada com sucesso!", [
-        { text: "OK", onPress: () => navigation.goBack() },
-      ]);
-    } catch (error: any) {
-      console.error("Erro ao registrar limpeza:", error.response?.data || error.message);
-      Alert.alert(
-        "Erro",
-        "Não foi possível registrar a limpeza. Verifique os dados e tente novamente."
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    setLoading(true);
+    // Iniciar limpeza
+    const limpeza = await SalaAPI.iniciarLimpeza(salaId, observacao);
+
+    // Enviar foto vinculada à limpeza criada
+    // await SalaAPI.enviarFotoLimpeza(limpeza.id, foto);
+
+    Alert.alert(
+      "Sucesso",
+      "Limpeza registrada e foto enviada. Agora conclua pela tela de detalhes.",
+      [{ text: "OK", onPress: () => navigation.goBack() }]
+    );
+  } catch (error: any) {
+    console.error("Erro ao registrar limpeza:", error.response?.data || error.message);
+    Alert.alert(
+      "Erro",
+      error.response?.data?.detail ||
+        "Não foi possível registrar a limpeza. Tente novamente."
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <View style={styles.container}>

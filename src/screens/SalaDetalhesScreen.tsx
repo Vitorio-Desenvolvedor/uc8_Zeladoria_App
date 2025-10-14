@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -13,12 +13,22 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList, Sala } from "../routes/types";
 import { Ionicons } from "@expo/vector-icons";
 import SalaAPI from "../api/salasApi";
+import { AuthContext } from "../context/AuthContext";
 
 // Tipagem de rota e navegação
 type SalaDetalhesRouteProp = RouteProp<RootStackParamList, "SalaDetalhes">;
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, "SalaDetalhes">;
 
 export default function SalaDetalhesScreen() {
+
+  const authContext = useContext(AuthContext) // nova função
+  if(!authContext){
+    return null
+  }
+
+  const {user} = authContext
+
+
   const route = useRoute<SalaDetalhesRouteProp>();
   const navigation = useNavigation<NavigationProp>();
   const { salaId } = route.params;
@@ -49,6 +59,8 @@ export default function SalaDetalhesScreen() {
 
   useEffect(() => {
     fetchSalaDetalhes();
+      console.log(user)
+
   }, [salaId]);
 
   // Editar sala

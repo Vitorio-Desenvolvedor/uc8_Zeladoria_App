@@ -1,4 +1,4 @@
-import api from "./api"; 
+import api from "./api";
 import { Sala } from "../routes/types";
 
 const SalaAPI = {
@@ -13,13 +13,13 @@ const SalaAPI = {
     return response.data;
   },
 
-  // Criar nova sala 
+  // Criar nova sala
   async createSala(payload: Partial<Sala>): Promise<Sala> {
     const response = await api.post("/salas/", payload);
     return response.data;
   },
 
-  // Atualizar sala 
+  // Atualizar sala
   async updateSala(id: string | number, payload: Partial<Sala>): Promise<Sala> {
     const response = await api.patch(`/salas/${id}/`, payload);
     return response.data;
@@ -30,28 +30,47 @@ const SalaAPI = {
     await api.delete(`/salas/${id}/`);
   },
 
-  async registrarLimpeza(id: string | number, observacao: string, funcionario: string, fotoUri?: string | null) {
-    const payload: any = {
-      observacoes: observacao,
-      funcionario_responsavel: funcionario,
-    };
+  // Iniciar uma limpeza (etapa 1)
+  async iniciarLimpeza(salaId: string | number, observacoes?: string) {
+    const response = await api.post(`/salas/${salaId}/iniciar_limpeza/`, { // AJUSTE
+      sala: salaId,
+      observacoes: observacoes ?? "",
+    });
+    console.log(response);
+    return response.data;
+  },
 
-    if (!fotoUri) {
-      const res = await api.post(`/salas/${id}/concluir_limpeza/`, payload);
-      return res.data;
-    }
+  // Concluir limpeza (etapa 2)
+  async concluirLimpeza(qr_code_id: string | number, observacoes?: string) {
+    const response = await api.post(
+      `/salas/${qr_code_id}/concluir_limpeza/`,
+      observacoes ? { observacoes } : {}
+    );
+    return response.data;
+  },
+
+  // Marcar como suja (usuário solicitante)
+  async marcarComoSuja(qr_code_id: string | number, observacoes?: string) {
+    const response = await api.post(
+      `/salas/${qr_code_id}/marcar_como_suja/`,
+      observacoes ? { observacoes } : {}
+    );
+    return response.data;
+  },
+
+  // Enviar foto de comprovação
+  async enviarFotoLimpeza(limpezaId: string | number, fotoUri: string) {
     const formData = new FormData();
-    formData.append("registro_limpeza", String(id)); 
+    formData.append("registro_limpeza", String(limpezaId));
     formData.append("imagem", {
       uri: fotoUri,
       name: "foto.jpg",
       type: "image/jpeg",
     } as any);
 
-    await api.post("/fotos_limpeza/", formData, {
+    const res = await api.post("/fotos_limpeza/", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
-    const res = await api.post(`/salas/${id}/concluir_limpeza/`, payload);
     return res.data;
   },
 };
