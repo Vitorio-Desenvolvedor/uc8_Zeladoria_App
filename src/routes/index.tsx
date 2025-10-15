@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { NavigationContainer } from "@react-navigation/native";
 import { RootStackParamList } from "../routes/types";
 
+// Telas principais
 import LoginScreen from "../screens/LoginScreen";
 import HomeScreen from "../screens/HomeScreen";
 import SalasScreen from "../screens/SalasScreen";
@@ -16,8 +17,10 @@ import FormSala from "../screens/FormSala";
 import TelaAdmin from "../screens/TelaAdmin";
 import FormEditSalaScreen from "../screens/FormEditSalaScreen";
 
-// Comum (todos os usuários logados)
-import RegistrarLimpezaScreen from "../screens/RegistrarLimpezaScreen";
+// Limpeza
+import RegistroLimpezaScreen from "../screens/RegistroLimpezaScreen";
+import IniciarLimpezaScreen from "../screens/IniciarLimpezaScreen";
+import ConcluirLimpezaScreen from "../screens/ConcluirLimpezaScreen";
 
 import { AuthContext } from "../context/AuthContext";
 
@@ -35,7 +38,7 @@ export default function Routes() {
         screenOptions={{ headerShown: true }}
         initialRouteName={token ? "Home" : "Login"}
       >
-        {/* Tela de login */}
+        {/* TELA DE LOGIN */}
         {!token ? (
           <Stack.Screen
             name="Login"
@@ -44,28 +47,47 @@ export default function Routes() {
           />
         ) : (
           <>
-            {/* Rotas comuns a todos os usuários logados */}
+            {/* ROTAS COMUNS A TODOS OS USUÁRIOS */}
             <Stack.Screen name="Home" component={HomeScreen} />
             <Stack.Screen name="Salas" component={SalasScreen} />
-            <Stack.Screen name="SalaDetalhes" component={SalaDetalhesScreen} options={{title: "Sala Detatlhes"}} />
+            <Stack.Screen name="SalaDetalhes" component={SalaDetalhesScreen} />
             <Stack.Screen name="TelaPerfil" component={TelaPerfil} />
 
-            {/* Registro de limpeza — todos os usuários podem acessar */}
+            {/* TELAS DE LIMPEZA ACESSÍVEIS A ZELADORES */}
             <Stack.Screen
-              name="RegistrarLimpeza"
-              component={RegistrarLimpezaScreen}
-              options={{ title: "Registrar Limpeza" }}
+              name="RegistroLimpeza"
+              component={RegistroLimpezaScreen}
+              options={{ title: "Histórico de Limpezas" }}
+            />
+            <Stack.Screen
+              name="IniciarLimpeza"
+              component={IniciarLimpezaScreen}
+              options={{ title: "Iniciar Limpeza" }}
+            />
+            <Stack.Screen
+              name="ConcluirLimpeza"
+              component={ConcluirLimpezaScreen}
+              options={{ title: "Concluir Limpeza" }}
             />
 
-            {/* Rotas apenas para administradores */}
+            {/* ROTAS SOMENTE PARA ADMINISTRADORES */}
             {user?.is_staff && (
               <>
-                <Stack.Screen name="Historico" component={TelaHistorico} />
+                <Stack.Screen
+                  name="Historico"
+                  component={TelaHistorico}
+                  options={{ title: "Histórico Geral" }}
+                />
                 <Stack.Screen
                   name="CadastroUsuario"
                   component={TelaCadastroUsuario}
+                  options={{ title: "Cadastrar Usuário" }}
                 />
-                <Stack.Screen name="Admin" component={TelaAdmin} />
+                <Stack.Screen
+                  name="Admin"
+                  component={TelaAdmin}
+                  options={{ title: "Painel Administrativo" }}
+                />
                 <Stack.Screen
                   name="FormSala"
                   component={FormSala}

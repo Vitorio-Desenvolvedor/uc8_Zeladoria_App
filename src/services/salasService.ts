@@ -1,6 +1,6 @@
 import api from "../api/api";
 import { SalaAPI, Sala } from "../routes/types";
-import { mapSalaApiToSala } from "../utils/mapSalaApiToSala";
+import { mapSalaApiToSala } from "../utils/adaptSalaApiToSala";
 
 /** Lista todas as salas (GET /salas/) */
 export async function getSalas(): Promise<Sala[]> {

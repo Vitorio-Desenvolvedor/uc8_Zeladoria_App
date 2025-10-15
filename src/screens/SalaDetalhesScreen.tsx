@@ -15,20 +15,14 @@ import { Ionicons } from "@expo/vector-icons";
 import SalaAPI from "../api/salasApi";
 import { AuthContext } from "../context/AuthContext";
 
-// Tipagem de rota e navegação
 type SalaDetalhesRouteProp = RouteProp<RootStackParamList, "SalaDetalhes">;
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, "SalaDetalhes">;
 
 export default function SalaDetalhesScreen() {
+  const authContext = useContext(AuthContext);
+  if (!authContext) return null;
 
-  const authContext = useContext(AuthContext) // nova função
-  if(!authContext){
-    return null
-  }
-
-  const {user} = authContext
-
-
+  const { user } = authContext;
   const route = useRoute<SalaDetalhesRouteProp>();
   const navigation = useNavigation<NavigationProp>();
   const { salaId } = route.params;
@@ -43,15 +37,14 @@ export default function SalaDetalhesScreen() {
     Suja: "red",
   };
 
-  // Buscar detalhes da sala
   const fetchSalaDetalhes = async () => {
     try {
       setLoading(true);
       const data = await SalaAPI.getSalaById(salaId);
       setSala(data);
     } catch (error: any) {
-      console.error("Erro ao carregar detalhes da sala:", error.message);
       Alert.alert("Erro", "Não foi possível carregar os detalhes da sala.");
+      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -59,11 +52,8 @@ export default function SalaDetalhesScreen() {
 
   useEffect(() => {
     fetchSalaDetalhes();
-      console.log(user)
-
   }, [salaId]);
 
-  // Editar sala
   const editarSala = () => {
     navigation.navigate("FormEditSala", {
       salaId,
@@ -71,11 +61,10 @@ export default function SalaDetalhesScreen() {
     } as any);
   };
 
-  // Excluir sala
   const excluirSala = () => {
     Alert.alert(
       "Excluir Sala",
-      `Tem certeza que deseja excluir a sala "${sala?.nome_numero}"?`,
+      `Tem certeza que deseja excluir "${sala?.nome_numero}"?`,
       [
         { text: "Cancelar", style: "cancel" },
         {
@@ -84,10 +73,9 @@ export default function SalaDetalhesScreen() {
           onPress: async () => {
             try {
               await SalaAPI.deleteSala(salaId);
-              Alert.alert("Sucesso", "Sala excluída com sucesso!");
+              Alert.alert("Sucesso", "Sala excluída!");
               navigation.goBack();
             } catch (error: any) {
-              console.error("Erro ao excluir sala:", error.message);
               Alert.alert("Erro", "Não foi possível excluir a sala.");
             }
           },
@@ -96,102 +84,124 @@ export default function SalaDetalhesScreen() {
     );
   };
 
-  if (loading) {
+  const marcarComoSuja = async () => {
+    Alert.alert(
+      "Marcar como Suja",
+      "Tem certeza que deseja marcar esta sala como suja?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Confirmar",
+          onPress: async () => {
+            try {
+              await SalaAPI.marcarComoSuja(salaId);
+              Alert.alert("Sucesso", "Sala marcada como suja!");
+              fetchSalaDetalhes();
+            } catch (error: any) {
+              console.error(error);
+              Alert.alert("Erro", "Não foi possível marcar como suja.");
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  if (loading)
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" color="#004A8D" />
-        <Text>Carregando detalhes...</Text>
+        <Text>Carregando...</Text>
       </View>
     );
-  }
 
-  if (!sala) {
+  if (!sala)
     return (
       <View style={styles.center}>
         <Text style={{ color: "red" }}>Sala não encontrada.</Text>
       </View>
     );
-  }
 
   return (
     <ScrollView style={styles.container}>
-      {/* Título */}
       <Text style={styles.title}>Detalhes da Sala</Text>
       <Text style={styles.subtitle}>{sala.nome_numero}</Text>
 
-      {/* Informações */}
       <InfoBox label="Localização" value={sala.localizacao ?? "N/A"} />
       <InfoBox label="Capacidade" value={sala.capacidade ?? "N/A"} />
       <InfoBox label="Descrição" value={sala.descricao ?? "Sem descrição"} />
       <InfoBox
-        label="Status da Limpeza"
-        value={sala.status_limpeza ?? "Desconhecido"}
+        label="Status"
+        value={sala.status_limpeza}
         valueStyle={{
-          color: statusColors[sala.status_limpeza ?? ""] || "red",
+          color: statusColors[sala.status_limpeza] || "black",
           fontWeight: "bold",
         }}
       />
-      <InfoBox
-        label="Última Limpeza"
-        value={
-          sala.ultima_limpeza_data_hora
-            ? sala.ultima_limpeza_data_hora
-            : "Nunca registrada"
-        }
-      />
-      <InfoBox
-        label="Funcionário Responsável"
-        value={sala.ultima_limpeza_funcionario || "N/A"}
-      />
 
-      {/* Botões de ação horizontais */}
       <View style={styles.actions}>
-        {/* Registrar Limpeza */}
+        {/* INICIAR LIMPEZA */}
         <TouchableOpacity
-          style={[
-            styles.actionButton,
-            { backgroundColor: "rgba(0, 122, 255, 0.15)" },
-          ]}
+          style={[styles.actionButton, { backgroundColor: "#D6EAF8" }]}
           onPress={() =>
-            navigation.navigate(
-              "RegistrarLimpeza",
-              { salaId, onGoBack: fetchSalaDetalhes } as any
-            )
+            navigation.navigate("IniciarLimpeza", {
+              salaId,
+              onSuccess: fetchSalaDetalhes,
+            } as any)
           }
         >
-          <Ionicons name="checkmark-done" size={20} color="#004A8D" />
-          <Text style={styles.actionText}>Registrar</Text>
+          <Ionicons name="play" size={20} color="#004A8D" />
+          <Text style={styles.actionText}>Iniciar</Text>
         </TouchableOpacity>
 
-        {/* Editar Sala */}
+        {/* --- FINALIZAR LIMPEZA --- */}
         <TouchableOpacity
-          style={[
-            styles.actionButton,
-            { backgroundColor: "rgba(255, 165, 0, 0.15)" },
-          ]}
-          onPress={editarSala}
+          style={[styles.actionButton, { backgroundColor: "#D1F2EB" }]}
+          onPress={() =>
+            navigation.navigate("ConcluirLimpeza", {
+              salaId,
+              onSuccess: fetchSalaDetalhes,
+            } as any)
+          }
         >
-          <Ionicons name="create" size={20} color="#FFA500" />
-          <Text style={styles.actionText}>Editar</Text>
+          <Ionicons name="checkmark-done" size={20} color="#117A65" />
+          <Text style={styles.actionText}>Finalizar</Text>
         </TouchableOpacity>
 
-        {/* Excluir Sala */}
+        {/* --- MARCAR COMO SUJA --- */}
         <TouchableOpacity
-          style={[
-            styles.actionButton,
-            { backgroundColor: "rgba(229, 57, 53, 0.15)" },
-          ]}
-          onPress={excluirSala}
+          style={[styles.actionButton, { backgroundColor: "#FADBD8" }]}
+          onPress={marcarComoSuja}
         >
-          <Ionicons name="trash" size={20} color="#E53935" />
-          <Text style={styles.actionText}>Excluir</Text>
+          <Ionicons name="alert-circle" size={20} color="#E74C3C" />
+          <Text style={styles.actionText}>Marcar Suja</Text>
         </TouchableOpacity>
+
+        {/* --- BOTÕES EXCLUSIVOS DO ADMIN --- */}
+        {user?.is_superuser && (
+          <>
+            <TouchableOpacity
+              style={[styles.actionButton, { backgroundColor: "#FFF3CD" }]}
+              onPress={editarSala}
+            >
+              <Ionicons name="create" size={20} color="#E67E22" />
+              <Text style={styles.actionText}>Editar</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.actionButton, { backgroundColor: "#F5B7B1" }]}
+              onPress={excluirSala}
+            >
+              <Ionicons name="trash" size={20} color="#C0392B" />
+              <Text style={styles.actionText}>Excluir</Text>
+            </TouchableOpacity>
+          </>
+        )}
       </View>
     </ScrollView>
   );
 }
 
-// Componente InfoBox
 function InfoBox({
   label,
   value,
@@ -210,43 +220,27 @@ function InfoBox({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F4F6F9", padding: 20 },
-  center: { flex: 1, justifyContent: "center", alignItems: "center" },
-
-  title: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 5,
-    textAlign: "center",
-  },
-  subtitle: {
-    fontSize: 18,
-    color: "#555",
-    marginBottom: 20,
-    textAlign: "center",
-  },
-
-  infoBox: { marginBottom: 15 },
-  label: { fontSize: 16, fontWeight: "600", color: "#333" },
-  value: { fontSize: 15, color: "#555", marginTop: 3 },
-
+  container: { flex: 1, backgroundColor: "#F8F9F9", padding: 20 },
+  center: { flex: 1, alignItems: "center", justifyContent: "center" },
+  title: { fontSize: 22, fontWeight: "bold", textAlign: "center" },
+  subtitle: { fontSize: 18, color: "#555", textAlign: "center", marginBottom: 15 },
+  infoBox: { marginBottom: 10 },
+  label: { fontWeight: "bold", color: "#333" },
+  value: { color: "#555" },
   actions: {
-    marginTop: 25,
+    flexWrap: "wrap",
     flexDirection: "row",
-    justifyContent: "space-around",
+    justifyContent: "center",
+    gap: 10,
+    marginTop: 20,
   },
   actionButton: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 15,
     borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    marginHorizontal: 5,
   },
-  actionText: {
-    marginLeft: 8,
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#333",
-  },
+  actionText: { marginLeft: 6, fontWeight: "600" },
 });

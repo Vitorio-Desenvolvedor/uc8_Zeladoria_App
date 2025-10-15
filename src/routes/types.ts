@@ -89,5 +89,6 @@ export type RootStackParamList = {
   // histórico / limpeza
   HistoricoLimpezas: undefined;
   RegistroLimpeza: { salaId: string | number };
-  RegistrarLimpeza: { salaId: string | number; onSuccess?: () => void };
+  IniciarLimpeza: { salaId: string | number; onSuccess?: () => void };
+  ConcluirLimpeza: { salaId: string | number; onSuccess?: () => void };
 };
