@@ -10,10 +10,10 @@ import {
 } from "react-native";
 import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { RootStackParamList, Sala } from "../routes/types";
 import { Ionicons } from "@expo/vector-icons";
 import SalaAPI from "../api/salasApi";
 import { AuthContext } from "../context/AuthContext";
+import { RootStackParamList, Sala } from "../routes/types";
 
 type SalaDetalhesRouteProp = RouteProp<RootStackParamList, "SalaDetalhes">;
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, "SalaDetalhes">;
@@ -31,10 +31,10 @@ export default function SalaDetalhesScreen() {
   const [loading, setLoading] = useState(true);
 
   const statusColors: Record<string, string> = {
-    Limpa: "green",
-    "Em Limpeza": "orange",
-    "Limpeza Pendente": "gray",
-    Suja: "red",
+    Limpa: "#27AE60",
+    "Em Limpeza": "#F39C12",
+    "Limpeza Pendente": "#7F8C8D",
+    Suja: "#C0392B",
   };
 
   const fetchSalaDetalhes = async () => {
@@ -73,7 +73,7 @@ export default function SalaDetalhesScreen() {
           onPress: async () => {
             try {
               await SalaAPI.deleteSala(salaId);
-              Alert.alert("Sucesso", "Sala excluída!");
+              Alert.alert("Sucesso", "Sala excluída com sucesso!");
               navigation.goBack();
             } catch (error: any) {
               Alert.alert("Erro", "Não foi possível excluir a sala.");
@@ -85,26 +85,22 @@ export default function SalaDetalhesScreen() {
   };
 
   const marcarComoSuja = async () => {
-    Alert.alert(
-      "Marcar como Suja",
-      "Tem certeza que deseja marcar esta sala como suja?",
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Confirmar",
-          onPress: async () => {
-            try {
-              await SalaAPI.marcarComoSuja(salaId);
-              Alert.alert("Sucesso", "Sala marcada como suja!");
-              fetchSalaDetalhes();
-            } catch (error: any) {
-              console.error(error);
-              Alert.alert("Erro", "Não foi possível marcar como suja.");
-            }
-          },
+    Alert.alert("Marcar como Suja", "Deseja realmente marcar esta sala como suja?", [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Confirmar",
+        onPress: async () => {
+          try {
+            await SalaAPI.marcarComoSuja(salaId);
+            Alert.alert("Sucesso", "Sala marcada como suja!");
+            fetchSalaDetalhes();
+          } catch (error: any) {
+            console.error(error);
+            Alert.alert("Erro", "Não foi possível marcar como suja.");
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   if (loading)
@@ -127,77 +123,78 @@ export default function SalaDetalhesScreen() {
       <Text style={styles.title}>Detalhes da Sala</Text>
       <Text style={styles.subtitle}>{sala.nome_numero}</Text>
 
-      <InfoBox label="Localização" value={sala.localizacao ?? "N/A"} />
-      <InfoBox label="Capacidade" value={sala.capacidade ?? "N/A"} />
-      <InfoBox label="Descrição" value={sala.descricao ?? "Sem descrição"} />
-      <InfoBox
-        label="Status"
-        value={sala.status_limpeza}
-        valueStyle={{
-          color: statusColors[sala.status_limpeza] || "black",
-          fontWeight: "bold",
-        }}
-      />
+      <View style={styles.infoCard}>
+        <InfoBox label="Localização" value={sala.localizacao ?? "N/A"} />
+        <InfoBox label="Capacidade" value={sala.capacidade ?? "N/A"} />
+        <InfoBox label="Descrição" value={sala.descricao ?? "Sem descrição"} />
+        <InfoBox
+          label="Status"
+          value={sala.status_limpeza}
+          valueStyle={{
+            color: statusColors[sala.status_limpeza] || "#000",
+            fontWeight: "bold",
+          }}
+        />
+      </View>
 
-      <View style={styles.actions}>
-        {/* INICIAR LIMPEZA */}
-        <TouchableOpacity
-          style={[styles.actionButton, { backgroundColor: "#D6EAF8" }]}
+      <View style={styles.actionContainer}>
+        <ActionButton
+          icon="play"
+          text="Iniciar"
+          color="#004A8D"
+          background="#D6EAF8"
           onPress={() =>
             navigation.navigate("IniciarLimpeza", {
               salaId,
               onSuccess: fetchSalaDetalhes,
             } as any)
           }
-        >
-          <Ionicons name="play" size={20} color="#004A8D" />
-          <Text style={styles.actionText}>Iniciar</Text>
-        </TouchableOpacity>
+        />
 
-        {/* --- FINALIZAR LIMPEZA --- */}
-        <TouchableOpacity
-          style={[styles.actionButton, { backgroundColor: "#D1F2EB" }]}
+        <ActionButton
+          icon="checkmark-done"
+          text="Finalizar"
+          color="#117A65"
+          background="#D1F2EB"
           onPress={() =>
             navigation.navigate("ConcluirLimpeza", {
               salaId,
               onSuccess: fetchSalaDetalhes,
             } as any)
           }
-        >
-          <Ionicons name="checkmark-done" size={20} color="#117A65" />
-          <Text style={styles.actionText}>Finalizar</Text>
-        </TouchableOpacity>
+        />
 
-        {/* --- MARCAR COMO SUJA --- */}
-        <TouchableOpacity
-          style={[styles.actionButton, { backgroundColor: "#FADBD8" }]}
+        <ActionButton
+          icon="alert-circle"
+          text="Marcar Suja"
+          color="#C0392B"
+          background="#FADBD8"
           onPress={marcarComoSuja}
-        >
-          <Ionicons name="alert-circle" size={20} color="#E74C3C" />
-          <Text style={styles.actionText}>Marcar Suja</Text>
-        </TouchableOpacity>
-
-        {/* --- BOTÕES EXCLUSIVOS DO ADMIN --- */}
-        {user?.is_superuser && (
-          <>
-            <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: "#FFF3CD" }]}
-              onPress={editarSala}
-            >
-              <Ionicons name="create" size={20} color="#E67E22" />
-              <Text style={styles.actionText}>Editar</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: "#F5B7B1" }]}
-              onPress={excluirSala}
-            >
-              <Ionicons name="trash" size={20} color="#C0392B" />
-              <Text style={styles.actionText}>Excluir</Text>
-            </TouchableOpacity>
-          </>
-        )}
+        />
       </View>
+
+      {/* BOTÕES ADMINISTRATIVOS */}
+      {user?.is_superuser && (
+        <>
+          <View style={styles.actionContainer}>
+            <ActionButton
+              icon="create"
+              text="Editar"
+              color="#E67E22"
+              background="#FFF3CD"
+              onPress={editarSala}
+            />
+
+            <ActionButton
+              icon="trash"
+              text="Excluir"
+              color="#C0392B"
+              background="#F5B7B1"
+              onPress={excluirSala}
+            />
+          </View>
+        </>
+      )}
     </ScrollView>
   );
 }
@@ -219,28 +216,62 @@ function InfoBox({
   );
 }
 
+function ActionButton({
+  icon,
+  text,
+  color,
+  background,
+  onPress,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  text: string;
+  color: string;
+  background: string;
+  onPress: () => void;
+}) {
+  return (
+    <TouchableOpacity
+      style={[styles.actionButton, { backgroundColor: background }]}
+      onPress={onPress}
+    >
+      <Ionicons name={icon} size={20} color={color} />
+      <Text style={[styles.actionText, { color }]}>{text}</Text>
+    </TouchableOpacity>
+  );
+}
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F8F9F9", padding: 20 },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
-  title: { fontSize: 22, fontWeight: "bold", textAlign: "center" },
+  title: { fontSize: 22, fontWeight: "bold", textAlign: "center", marginBottom: 5 },
   subtitle: { fontSize: 18, color: "#555", textAlign: "center", marginBottom: 15 },
+  infoCard: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 15,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 2,
+    marginBottom: 20,
+  },
   infoBox: { marginBottom: 10 },
   label: { fontWeight: "bold", color: "#333" },
-  value: { color: "#555" },
-  actions: {
-    flexWrap: "wrap",
+  value: { color: "#555", fontSize: 15 },
+
+  actionContainer: {
     flexDirection: "row",
+    flexWrap: "wrap",
     justifyContent: "center",
-    gap: 10,
-    marginTop: 20,
+    gap: 12,
   },
   actionButton: {
     flexDirection: "row",
     alignItems: "center",
     borderRadius: 10,
     paddingVertical: 10,
-    paddingHorizontal: 14,
-    marginHorizontal: 5,
+    paddingHorizontal: 15,
+    margin: 4,
   },
   actionText: { marginLeft: 6, fontWeight: "600" },
 });

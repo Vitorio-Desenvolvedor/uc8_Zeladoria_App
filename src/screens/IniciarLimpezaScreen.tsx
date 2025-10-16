@@ -15,7 +15,7 @@ import SalaAPI from "../api/salasApi";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, "IniciarLimpeza">;
 
-export default function RegistrarLimpezaScreen() {
+export default function IniciarLimpezaScreen() {
   const route = useRoute<any>();
   const navigation = useNavigation<NavigationProp>();
   const { salaId, onSuccess } = route.params;
@@ -24,14 +24,23 @@ export default function RegistrarLimpezaScreen() {
   const [loading, setLoading] = useState(false);
 
   const handleIniciar = async () => {
+    if (loading) return;
+
     try {
       setLoading(true);
       await SalaAPI.iniciarLimpeza(salaId, observacao);
-      Alert.alert("Sucesso", "Limpeza iniciada!");
-      if (onSuccess) onSuccess();
-      navigation.goBack();
+      Alert.alert("Sucesso", "Limpeza iniciada!", [
+        { text: "OK", onPress: () => {
+            if (onSuccess) onSuccess();
+            navigation.goBack();
+        } }
+      ]);
     } catch (error: any) {
-      Alert.alert("Erro", error.response?.data?.detail || "Falha ao iniciar limpeza.");
+      console.error("Erro ao iniciar limpeza:", error);
+      Alert.alert(
+        "Erro",
+        error.response?.data?.detail || "Falha ao iniciar a limpeza."
+      );
     } finally {
       setLoading(false);
     }
@@ -40,6 +49,7 @@ export default function RegistrarLimpezaScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Iniciar Limpeza</Text>
+
       <TextInput
         style={[styles.input, { height: 100 }]}
         placeholder="Observações (opcional)"
@@ -47,6 +57,7 @@ export default function RegistrarLimpezaScreen() {
         onChangeText={setObservacao}
         multiline
       />
+
       {loading ? (
         <ActivityIndicator size="large" color="#004A8D" />
       ) : (
@@ -59,8 +70,17 @@ export default function RegistrarLimpezaScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F8F9F9", padding: 20 },
-  title: { fontSize: 22, fontWeight: "bold", textAlign: "center", marginBottom: 20 },
+  container: {
+    flex: 1,
+    backgroundColor: "#F8F9F9",
+    padding: 20,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 20,
+  },
   input: {
     backgroundColor: "#fff",
     borderRadius: 10,
@@ -68,6 +88,7 @@ const styles = StyleSheet.create({
     borderColor: "#ddd",
     borderWidth: 1,
     marginBottom: 20,
+    textAlignVertical: "top",
   },
   button: {
     backgroundColor: "#004A8D",
@@ -75,5 +96,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: "center",
   },
-  buttonText: { color: "#fff", fontWeight: "bold" },
+  buttonText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
 });

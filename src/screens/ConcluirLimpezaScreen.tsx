@@ -5,13 +5,12 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   Image,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { useRoute, useNavigation } from "@react-navigation/native";
-import { RouteProp } from "@react-navigation/native";
+import { useRoute, RouteProp, useNavigation } from "@react-navigation/native";
 import { RootStackParamList } from "../routes/types";
 import SalaAPI from "../api/salasApi";
 
@@ -20,54 +19,74 @@ type ConcluirLimpezaRouteProp = RouteProp<RootStackParamList, "ConcluirLimpeza">
 export default function ConcluirLimpezaScreen() {
   const route = useRoute<ConcluirLimpezaRouteProp>();
   const navigation = useNavigation();
-  const { salaId, onSuccess } = route.params;
+  const { salaId } = route.params;
 
-  const [observacao, setObservacao] = useState("");
+  const [observacoes, setObservacoes] = useState("");
   const [foto, setFoto] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const selecionarFoto = async () => {
-    const permission = await ImagePicker.requestCameraPermissionsAsync();
-    if (!permission.granted) {
-      Alert.alert("Permissão negada", "É necessário permitir acesso à câmera.");
+  // Escolher foto da galeria 
+  const escolherFotoGaleria = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permissão negada", "Habilite o acesso à galeria para selecionar fotos.");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.7,
+    });
+
+    if (!result.canceled && result.assets.length > 0) {
+      setFoto(result.assets[0].uri);
+    }
+  };
+
+  // Tirar foto com a câmera
+  const tirarFotoCamera = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permissão negada", "Habilite o acesso à câmera para tirar fotos.");
       return;
     }
 
     const result = await ImagePicker.launchCameraAsync({
       allowsEditing: true,
-      aspect: [4, 3],
       quality: 0.7,
     });
 
-    if (!result.canceled) {
+    if (!result.canceled && result.assets.length > 0) {
       setFoto(result.assets[0].uri);
     }
   };
 
+  // Concluir limpeza 
   const concluirLimpeza = async () => {
+    if (!foto) {
+      Alert.alert("Erro", "Você precisa enviar pelo menos uma foto!");
+      return;
+    }
+
+    setLoading(true);
+
     try {
-      setLoading(true);
+      // Envia dados de conclusão
+      const response = await SalaAPI.concluirLimpeza(salaId, observacoes);
 
-      // Cria formData para envio da foto + observação
-      const formData = new FormData();
-      formData.append("observacoes", observacao);
-      if (foto) {
-        formData.append("imagem", {
-          uri: foto,
-          type: "image/jpeg",
-          name: "limpeza.jpg",
-        } as any);
-      }
+      // Envia a foto separadamente
+      await SalaAPI.enviarFotoLimpeza(response.id ?? salaId, foto);
 
-      // Chama a função correta do SalaAPI
-      await SalaAPI.iniciarLimpeza(salaId, observacao, "Funcionário", foto);
-
-      Alert.alert("Sucesso", "Limpeza registrada com sucesso!");
-      if (onSuccess) onSuccess();
+      Alert.alert("Sucesso", "Limpeza concluída e sala marcada como limpa!");
       navigation.goBack();
     } catch (error: any) {
-      console.error("Erro ao concluir limpeza:", error.response?.data || error.message);
-      Alert.alert("Erro", "Falha ao concluir a limpeza.");
+      console.error("Erro ao concluir limpeza:", error);
+      Alert.alert(
+        "Erro",
+        error.response?.data?.detail ||
+          "Não foi possível concluir a limpeza. Verifique os dados enviados."
+      );
     } finally {
       setLoading(false);
     }
@@ -75,76 +94,90 @@ export default function ConcluirLimpezaScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Finalizar Limpeza</Text>
+      <Text style={styles.title}>Concluir Limpeza</Text>
 
-      <Text style={styles.label}>Observação:</Text>
       <TextInput
+        placeholder="Observações (opcional)"
+        value={observacoes}
+        onChangeText={setObservacoes}
         style={styles.input}
-        placeholder="Ex: limpeza finalizada, tudo em ordem."
         multiline
-        value={observacao}
-        onChangeText={setObservacao}
       />
 
-      <TouchableOpacity style={styles.fotoBtn} onPress={selecionarFoto}>
-        <Text style={styles.fotoBtnText}>
-          {foto ? "Alterar Foto" : "Tirar Foto"}
-        </Text>
-      </TouchableOpacity>
+      <View style={styles.buttonsRow}>
+        <TouchableOpacity style={styles.actionButton} onPress={tirarFotoCamera}>
+          <Text style={styles.actionText}>Tirar Foto</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.actionButton} onPress={escolherFotoGaleria}>
+          <Text style={styles.actionText}>Galeria</Text>
+        </TouchableOpacity>
+      </View>
 
       {foto && <Image source={{ uri: foto }} style={styles.preview} />}
 
       {loading ? (
-        <ActivityIndicator size="large" color="#004A8D" />
+        <ActivityIndicator size="large" color="#007bff" />
       ) : (
-        <TouchableOpacity style={styles.submitBtn} onPress={concluirLimpeza}>
-          <Text style={styles.submitText}>Concluir Limpeza</Text>
+        <TouchableOpacity style={styles.saveButton} onPress={concluirLimpeza}>
+          <Text style={styles.saveButtonText}>Marcar como Limpa</Text>
         </TouchableOpacity>
       )}
     </View>
   );
 }
 
+// === Estilos ===
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F4F6F7",
+    backgroundColor: "#fff",
     padding: 20,
   },
   title: {
     fontSize: 22,
     fontWeight: "bold",
-    textAlign: "center",
     marginBottom: 20,
   },
-  label: { fontWeight: "bold", color: "#333", marginBottom: 5 },
   input: {
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    padding: 10,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    padding: 25,
+    borderRadius: 15,
     marginBottom: 15,
-    minHeight: 80,
     textAlignVertical: "top",
   },
-  fotoBtn: {
-    backgroundColor: "#D6EAF8",
-    borderRadius: 8,
-    padding: 12,
-    alignItems: "center",
+  buttonsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 15,
   },
-  fotoBtnText: { color: "#004A8D", fontWeight: "bold" },
+  actionButton: {
+    flex: 1,
+    backgroundColor: "#e3f2fd",
+    padding: 10,
+    borderRadius: 10,
+    alignItems: "center",
+    marginHorizontal: 5,
+  },
+  actionText: {
+    color: "#0277bd",
+    fontWeight: "bold",
+  },
   preview: {
     width: "100%",
-    height: 180,
-    borderRadius: 8,
+    height: 200,
+    borderRadius: 10,
     marginBottom: 15,
   },
-  submitBtn: {
-    backgroundColor: "#117A65",
-    borderRadius: 8,
-    padding: 15,
+  saveButton: {
+    backgroundColor: "#2e7d32",
+    padding: 14,
+    borderRadius: 10,
     alignItems: "center",
   },
-  submitText: { color: "#fff", fontWeight: "bold" },
+  saveButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
 });

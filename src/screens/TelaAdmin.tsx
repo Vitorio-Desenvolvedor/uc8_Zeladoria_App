@@ -98,7 +98,7 @@ export default function TelaAdmin() {
           )
         }
       >
-        <Text style={styles.novaSalaText}>➕ Cadastrar Nova Sala</Text>
+        <Text style={styles.novaSalaText}> Cadastrar Nova Sala</Text>
       </TouchableOpacity>
 
       <FlatList
