@@ -23,6 +23,13 @@ export interface UserData extends User {
   is_superuser: boolean; // reforço para autenticação
 }
 
+export interface ResponsavelLimpeza {
+  id: number;
+  username: string;
+  nome?: string | null;
+  email?: string | null;
+}
+
 // Modelo de Sala
 export interface Sala {
   id: number;
@@ -38,6 +45,7 @@ export interface Sala {
   ultima_limpeza_data_hora?: string | null;
   ultima_limpeza_funcionario?: string | null;
   imagem?: string | null;
+  responsavel_limpeza?: ResponsavelLimpeza | null;
 }
 
 // Histórico de Limpeza

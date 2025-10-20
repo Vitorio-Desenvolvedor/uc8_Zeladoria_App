@@ -1,26 +1,16 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from "react-native";
 import { useAuth } from "../context/AuthContext";
-import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../routes/types";
 import { Ionicons } from "@expo/vector-icons";
 
 type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, "Home">;
-type HomeScreenRouteProp = RouteProp<RootStackParamList, keyof RootStackParamList>;
 
 export default function HomeScreen() {
   const { user, logout } = useAuth();
   const navigation = useNavigation<HomeScreenNavigationProp>();
-  const route = useRoute<HomeScreenRouteProp>();
-
-  const [selectedTopButton, setSelectedTopButton] = useState<"Salas" | "RegistrarLimpeza" | "HistoricoLimpezas" | null>(null);
-
-  const getFooterColor = (screenName: keyof RootStackParamList) =>
-    route.name === screenName ? "#FFD700" : "#fff"; // editar cor para organizar 
-
-  const getTopButtonColor = (buttonName: "Salas" | "RegistrarLimpeza" | "HistoricoLimpezas") =>
-    selectedTopButton === buttonName ? "#004A8D" : "#555";
 
   return (
     <SafeAreaView style={styles.container}>
@@ -29,30 +19,22 @@ export default function HomeScreen() {
         <Text style={styles.headerText}>Bem-vindo</Text>
       </View>
 
-      {/* Botões principais (topo) */}
+      {/* Botões principais */}
       <View style={styles.topButtons}>
         <TouchableOpacity
           style={styles.topButton}
-          onPress={() => {
-            setSelectedTopButton("Salas");
-            navigation.navigate("Salas");
-          }}
+          onPress={() => navigation.navigate("Salas")}
         >
-          <Ionicons name="business" size={28} color={getTopButtonColor("Salas")} />
-          <Text style={[styles.topButtonLabel, { color: getTopButtonColor("Salas") }]}>Ver Salas</Text>
+          <Ionicons name="business" size={28} color="#004A8D" />
+          <Text style={styles.topButtonLabel}>Ver Salas</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.topButton}
-          onPress={() => {
-            setSelectedTopButton("HistoricoLimpezas");
-            navigation.navigate("HistoricoLimpezas");
-          }}
+          onPress={() => navigation.navigate("HistoricoLimpezas")}
         >
-          <Ionicons name="time" size={28} color={getTopButtonColor("HistoricoLimpezas")} />
-          <Text style={[styles.topButtonLabel, { color: getTopButtonColor("HistoricoLimpezas") }]}>
-            Histórico de Limpezas
-          </Text>
+          <Ionicons name="time" size={28} color="#004A8D" />
+          <Text style={styles.topButtonLabel}>Histórico de Limpezas</Text>
         </TouchableOpacity>
       </View>
 
@@ -65,38 +47,32 @@ export default function HomeScreen() {
 
       {/* Rodapé */}
       <View style={styles.footer}>
-        {/* Home */}
         <TouchableOpacity
           style={styles.footerButton}
           onPress={() => navigation.navigate("Home")}
         >
-          <Ionicons name="home" size={28} color={getFooterColor("Home")} />
-          <Text style={[styles.footerLabel, { color: getFooterColor("Home") }]}>Home</Text>
+          <Ionicons name="home" size={28} color="#fff" />
+          <Text style={styles.footerLabel}>Home</Text>
         </TouchableOpacity>
 
-        {/* Perfil */}
         <TouchableOpacity
           style={styles.footerButton}
           onPress={() => navigation.navigate("TelaPerfil")}
         >
-          <Ionicons name="person-circle" size={28} color={getFooterColor("TelaPerfil")} />
-          <Text style={[styles.footerLabel, { color: getFooterColor("TelaPerfil") }]}>Perfil</Text>
+          <Ionicons name="person-circle" size={28} color="#fff" />
+          <Text style={styles.footerLabel}>Perfil</Text>
         </TouchableOpacity>
 
-        {/* Administração */}
         {user?.is_staff && (
           <TouchableOpacity
             style={styles.footerButton}
             onPress={() => navigation.navigate("Admin")}
           >
-            <Ionicons name="settings" size={28} color={getFooterColor("Admin")} />
-            <Text style={[styles.footerLabel, { color: getFooterColor("Admin") }]}>
-              Admin
-            </Text>
+            <Ionicons name="settings" size={28} color="#fff" />
+            <Text style={styles.footerLabel}>Admin</Text>
           </TouchableOpacity>
         )}
 
-        {/* Sair */}
         <TouchableOpacity style={styles.footerButton} onPress={logout}>
           <Ionicons name="log-out" size={28} color="#E53935" />
           <Text style={[styles.footerLabel, { color: "#E53935" }]}>Sair</Text>
@@ -116,8 +92,21 @@ const styles = StyleSheet.create({
     marginTop: 20,
     paddingHorizontal: 10,
   },
-  topButton: { flexDirection: "column", alignItems: "center" },
-  topButtonLabel: { fontSize: 12, marginTop: 5, fontWeight: "bold" },
+  topButton: {
+    flexDirection: "column",
+    alignItems: "center",
+    backgroundColor: "#D6EAF8",
+    padding: 15,
+    borderRadius: 12,
+    width: 150,
+  },
+  topButtonLabel: {
+    fontSize: 14,
+    marginTop: 8,
+    fontWeight: "bold",
+    color: "#004A8D",
+    textAlign: "center",
+  },
   centerContent: { flex: 1, justifyContent: "center", alignItems: "center" },
   centerText: { fontSize: 16, color: "#555", textAlign: "center", paddingHorizontal: 20 },
   footer: {
@@ -128,5 +117,5 @@ const styles = StyleSheet.create({
     paddingBottom: 25,
   },
   footerButton: { flexDirection: "column", alignItems: "center" },
-  footerLabel: { fontSize: 12, marginTop: 3 },
+  footerLabel: { fontSize: 12, marginTop: 3, color: "#fff" },
 });

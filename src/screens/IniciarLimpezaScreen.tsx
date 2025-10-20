@@ -18,7 +18,7 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList, "IniciarLimp
 export default function IniciarLimpezaScreen() {
   const route = useRoute<any>();
   const navigation = useNavigation<NavigationProp>();
-  const { salaId, onSuccess } = route.params;
+  const { salaId } = route.params; // 🔹 removido o onSuccess para evitar warning
 
   const [observacao, setObservacao] = useState("");
   const [loading, setLoading] = useState(false);
@@ -28,18 +28,29 @@ export default function IniciarLimpezaScreen() {
 
     try {
       setLoading(true);
-      await SalaAPI.iniciarLimpeza(salaId, observacao);
-      Alert.alert("Sucesso", "Limpeza iniciada!", [
-        { text: "OK", onPress: () => {
-            if (onSuccess) onSuccess();
-            navigation.goBack();
-        } }
+      console.log("🧹 Iniciando limpeza para sala:", salaId);
+
+      const response = await SalaAPI.iniciarLimpeza(salaId, observacao);
+
+      if (!response?.id) {
+        throw new Error("Resposta inválida da API. Registro de limpeza não retornado.");
+      }
+
+      Alert.alert("Sucesso", "Limpeza iniciada com sucesso!", [
+        {
+          text: "Ir para conclusão",
+          onPress: () =>
+            navigation.navigate("ConcluirLimpeza", {
+              salaId,
+              registroId: response.id, // envia o registro da limpeza corretamente
+            }),
+        },
       ]);
     } catch (error: any) {
-      console.error("Erro ao iniciar limpeza:", error);
+      console.error("Erro ao iniciar limpeza:", error.response?.data || error.message);
       Alert.alert(
         "Erro",
-        error.response?.data?.detail || "Falha ao iniciar a limpeza."
+        error.response?.data?.detail || "Não foi possível iniciar a limpeza. Tente novamente."
       );
     } finally {
       setLoading(false);
@@ -51,7 +62,7 @@ export default function IniciarLimpezaScreen() {
       <Text style={styles.title}>Iniciar Limpeza</Text>
 
       <TextInput
-        style={[styles.input, { height: 100 }]}
+        style={[styles.input, { height: 120 }]}
         placeholder="Observações (opcional)"
         value={observacao}
         onChangeText={setObservacao}
@@ -61,7 +72,11 @@ export default function IniciarLimpezaScreen() {
       {loading ? (
         <ActivityIndicator size="large" color="#004A8D" />
       ) : (
-        <TouchableOpacity style={styles.button} onPress={handleIniciar}>
+        <TouchableOpacity
+          style={[styles.button, loading && { opacity: 0.7 }]}
+          onPress={handleIniciar}
+          disabled={loading}
+        >
           <Text style={styles.buttonText}>Iniciar Limpeza</Text>
         </TouchableOpacity>
       )}
@@ -69,10 +84,11 @@ export default function IniciarLimpezaScreen() {
   );
 }
 
+// === Estilos ===
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8F9F9",
+    backgroundColor: "#f9f9f9",
     padding: 20,
   },
   title: {
@@ -80,12 +96,13 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
     marginBottom: 20,
+    color: "#004A8D",
   },
   input: {
     backgroundColor: "#fff",
     borderRadius: 10,
-    padding: 12,
-    borderColor: "#ddd",
+    padding: 14,
+    borderColor: "#ccc",
     borderWidth: 1,
     marginBottom: 20,
     textAlignVertical: "top",

@@ -11,7 +11,7 @@ import SalaDetalhesScreen from "../screens/SalaDetalhesScreen";
 import TelaPerfil from "../screens/TelaPerfil";
 
 // Admin
-import TelaHistorico from "../screens/TelaHistorico";
+import HistoricoLimpezasScreen from "../screens/HistoricoLimpezasScreen";
 import TelaCadastroUsuario from "../screens/TelaCadastroUsuario";
 import FormSala from "../screens/FormSala";
 import TelaAdmin from "../screens/TelaAdmin";
@@ -52,6 +52,7 @@ export default function Routes() {
             <Stack.Screen name="Salas" component={SalasScreen} />
             <Stack.Screen name="SalaDetalhes" component={SalaDetalhesScreen} options={{title: "Detalhes da Sala"}} />
             <Stack.Screen name="TelaPerfil" component={TelaPerfil} />
+            <Stack.Screen name="HistoricoLimpezas" component={HistoricoLimpezasScreen} />
 
             {/* TELAS DE LIMPEZA ACESSÍVEIS A ZELADORES */}
             <Stack.Screen
@@ -73,11 +74,6 @@ export default function Routes() {
             {/* ROTAS SOMENTE PARA ADMINISTRADORES */}
             {user?.is_staff && (
               <>
-                <Stack.Screen
-                  name="Historico"
-                  component={TelaHistorico}
-                  options={{ title: "Histórico Geral" }}
-                />
                 <Stack.Screen
                   name="CadastroUsuario"
                   component={TelaCadastroUsuario}

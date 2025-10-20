@@ -123,6 +123,7 @@ export default function SalaDetalhesScreen() {
       <Text style={styles.title}>Detalhes da Sala</Text>
       <Text style={styles.subtitle}>{sala.nome_numero}</Text>
 
+      {/* CARD DE INFORMAÇÕES DA SALA */}
       <View style={styles.infoCard}>
         <InfoBox label="Localização" value={sala.localizacao ?? "N/A"} />
         <InfoBox label="Capacidade" value={sala.capacidade ?? "N/A"} />
@@ -135,8 +136,23 @@ export default function SalaDetalhesScreen() {
             fontWeight: "bold",
           }}
         />
+        {sala.ultima_limpeza_funcionario && (
+          <>
+            <InfoBox
+              label="Última Limpeza por"
+              value={sala.ultima_limpeza_funcionario}
+            />
+            {sala.ultima_limpeza_data_hora && (
+              <InfoBox
+                label="Data da Última Limpeza"
+                value={new Date(sala.ultima_limpeza_data_hora).toLocaleString()}
+              />
+            )}
+          </>
+        )}
       </View>
 
+      {/* BOTÕES DE AÇÃO */}
       <View style={styles.actionContainer}>
         <ActionButton
           icon="play"
@@ -175,30 +191,34 @@ export default function SalaDetalhesScreen() {
 
       {/* BOTÕES ADMINISTRATIVOS */}
       {user?.is_superuser && (
-        <>
-          <View style={styles.actionContainer}>
-            <ActionButton
-              icon="create"
-              text="Editar"
-              color="#E67E22"
-              background="#FFF3CD"
-              onPress={editarSala}
-            />
+        <View style={styles.actionContainer}>
+          <ActionButton
+            icon="create"
+            text="Editar"
+            color="#E67E22"
+            background="#FFF3CD"
+            onPress={editarSala}
+          />
+        </View>
+      )}
 
-            <ActionButton
-              icon="trash"
-              text="Excluir"
-              color="#C0392B"
-              background="#F5B7B1"
-              onPress={excluirSala}
-            />
-          </View>
-        </>
+      {/* BOTÃO EXCLUIR EMBAIXO */}
+      {user?.is_superuser && (
+        <View style={{ marginTop: 25, marginBottom: 30 }}>
+          <ActionButton
+            icon="trash"
+            text="Excluir Sala"
+            color="#fff"
+            background="#C0392B"
+            onPress={excluirSala}
+          />
+        </View>
       )}
     </ScrollView>
   );
 }
 
+// COMPONENTES 
 function InfoBox({
   label,
   value,
@@ -240,6 +260,7 @@ function ActionButton({
   );
 }
 
+// ESTILOS 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F8F9F9", padding: 20 },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
