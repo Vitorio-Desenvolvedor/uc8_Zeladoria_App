@@ -9,6 +9,7 @@ import HomeScreen from "../screens/HomeScreen";
 import SalasScreen from "../screens/SalasScreen";
 import SalaDetalhesScreen from "../screens/SalaDetalhesScreen";
 import TelaPerfil from "../screens/TelaPerfil";
+import NotificacoesScreen from "../screens/NotificacoesScreen";
 
 // Admin
 import HistoricoLimpezasScreen from "../screens/HistoricoLimpezasScreen";
@@ -70,6 +71,23 @@ export default function Routes() {
               component={ConcluirLimpezaScreen}
               options={{ title: "Concluir Limpeza" }}
             />
+            {/* CRIAÇÃO DE TELA */}
+            <Stack.Screen
+                name="FormSala"
+                component={FormSala}
+                options={{ title: "Cadastrar Sala" }}
+                />
+            <Stack.Screen
+                name="FormEditSala"
+                component={FormEditSalaScreen}
+                options={{ title: "Editar Sala" }}
+                />
+                
+            <Stack.Screen 
+                name="Notificacao"
+                component={NotificacoesScreen} 
+                options={{ title: "Notificações" }}
+                   />
 
             {/* ROTAS SOMENTE PARA ADMINISTRADORES */}
             {user?.is_staff && (
@@ -84,16 +102,7 @@ export default function Routes() {
                   component={TelaAdmin}
                   options={{ title: "Painel Administrativo" }}
                 />
-                <Stack.Screen
-                  name="FormSala"
-                  component={FormSala}
-                  options={{ title: "Cadastrar Sala" }}
-                />
-                <Stack.Screen
-                  name="FormEditSala"
-                  component={FormEditSalaScreen}
-                  options={{ title: "Editar Sala" }}
-                />
+      
               </>
             )}
           </>

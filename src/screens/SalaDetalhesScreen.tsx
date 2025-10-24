@@ -123,7 +123,7 @@ export default function SalaDetalhesScreen() {
       <Text style={styles.title}>Detalhes da Sala</Text>
       <Text style={styles.subtitle}>{sala.nome_numero}</Text>
 
-      {/* CARD DE INFORMAÇÕES DA SALA */}
+      {/* CARD DE INFORMAÇÕES */}
       <View style={styles.infoCard}>
         <InfoBox label="Localização" value={sala.localizacao ?? "N/A"} />
         <InfoBox label="Capacidade" value={sala.capacidade ?? "N/A"} />
@@ -138,10 +138,7 @@ export default function SalaDetalhesScreen() {
         />
         {sala.ultima_limpeza_funcionario && (
           <>
-            <InfoBox
-              label="Última Limpeza por"
-              value={sala.ultima_limpeza_funcionario}
-            />
+            <InfoBox label="Última Limpeza por" value={sala.ultima_limpeza_funcionario} />
             {sala.ultima_limpeza_data_hora && (
               <InfoBox
                 label="Data da Última Limpeza"
@@ -189,36 +186,29 @@ export default function SalaDetalhesScreen() {
         />
       </View>
 
-      {/* BOTÕES ADMINISTRATIVOS */}
-      {user?.is_superuser && (
-        <View style={styles.actionContainer}>
-          <ActionButton
-            icon="create"
-            text="Editar"
-            color="#E67E22"
-            background="#FFF3CD"
-            onPress={editarSala}
-          />
-        </View>
-      )}
+      {/* BOTÕES ADMINISTRATIVOS (AGORA VISÍVEIS PARA TODOS) */}
+      <View style={[styles.actionContainer, { marginTop: 20 }]}>
+        <ActionButton
+          icon="create"
+          text="Editar"
+          color="#E67E22"
+          background="#FFF3CD"
+          onPress={editarSala}
+        />
 
-      {/* BOTÃO EXCLUIR EMBAIXO */}
-      {user?.is_superuser && (
-        <View style={{ marginTop: 25, marginBottom: 30 }}>
-          <ActionButton
-            icon="trash"
-            text="Excluir Sala"
-            color="#fff"
-            background="#C0392B"
-            onPress={excluirSala}
-          />
-        </View>
-      )}
+        <ActionButton
+          icon="trash"
+          text="Excluir"
+          color="#fff"
+          background="#C0392B"
+          onPress={excluirSala}
+        />
+      </View>
     </ScrollView>
   );
 }
 
-// COMPONENTES 
+/* COMPONENTE DE INFORMAÇÃO */
 function InfoBox({
   label,
   value,
@@ -236,6 +226,7 @@ function InfoBox({
   );
 }
 
+/* COMPONENTE DE BOTÃO DE AÇÃO */
 function ActionButton({
   icon,
   text,
@@ -260,7 +251,7 @@ function ActionButton({
   );
 }
 
-// ESTILOS 
+/* ESTILOS */
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F8F9F9", padding: 20 },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
@@ -279,7 +270,6 @@ const styles = StyleSheet.create({
   infoBox: { marginBottom: 10 },
   label: { fontWeight: "bold", color: "#333" },
   value: { color: "#555", fontSize: 15 },
-
   actionContainer: {
     flexDirection: "row",
     flexWrap: "wrap",

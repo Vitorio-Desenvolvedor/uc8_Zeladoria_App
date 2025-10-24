@@ -1,22 +1,27 @@
-import React, { useState } from "react";
+import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from "react-native";
 import { useAuth } from "../context/AuthContext";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../routes/types";
 import { Ionicons } from "@expo/vector-icons";
+import { useNotificacoes } from "../hooks/useNotificacoes";
 
 type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, "Home">;
 
 export default function HomeScreen() {
   const { user, logout } = useAuth();
   const navigation = useNavigation<HomeScreenNavigationProp>();
+  const { notificacoes } = useNotificacoes();
+
+  // Contagem de notificações não lidas
+  const naoLidas = notificacoes.filter(n => !n.lida).length;
 
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerText}>Bem-vindo</Text>
+        <Text style={styles.headerText}>Bem-vindo{user?.username ? `, ${user.username}` : ""}!</Text>
       </View>
 
       {/* Botões principais */}
@@ -35,6 +40,21 @@ export default function HomeScreen() {
         >
           <Ionicons name="time" size={28} color="#004A8D" />
           <Text style={styles.topButtonLabel}>Histórico de Limpezas</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.topButton}
+          onPress={() => navigation.navigate("Notificacao")}
+        >
+          <View style={styles.notifIconWrapper}>
+            <Ionicons name="notifications-outline" size={28} color="#004A8D" />
+            {naoLidas > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{naoLidas}</Text>
+              </View>
+            )}
+          </View>
+          <Text style={styles.topButtonLabel}>Notificações</Text>
         </TouchableOpacity>
       </View>
 
@@ -98,7 +118,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#D6EAF8",
     padding: 15,
     borderRadius: 12,
-    width: 150,
+    width: 120,
+    position: "relative",
   },
   topButtonLabel: {
     fontSize: 14,
@@ -106,6 +127,26 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#004A8D",
     textAlign: "center",
+  },
+  notifIconWrapper: {
+    position: "relative",
+  },
+  badge: {
+    position: "absolute",
+    top: -5,
+    right: -10,
+    backgroundColor: "#E53935",
+    borderRadius: 8,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    minWidth: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  badgeText: {
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: "bold",
   },
   centerContent: { flex: 1, justifyContent: "center", alignItems: "center" },
   centerText: { fontSize: 16, color: "#555", textAlign: "center", paddingHorizontal: 20 },

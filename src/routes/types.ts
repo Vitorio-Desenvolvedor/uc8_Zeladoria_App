@@ -1,3 +1,10 @@
+export interface Notificacao {
+  id: number;
+  mensagem: string;
+  link: string;
+  data_criacao: string;
+  lida: boolean;
+}
 
 export interface CredenciaisLogin {
   username: string;
@@ -79,6 +86,7 @@ export type RootStackParamList = {
   Login: undefined;
   Home: undefined;
   Salas: undefined;
+  Notificacao: undefined;
 
   SalaDetalhes: { salaId: string | number };
 
