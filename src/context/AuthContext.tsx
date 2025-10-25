@@ -18,8 +18,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     setError(null);
     try {
-      const response = await realizarLogin({ username, password });
-      console.log("Retorno da API:", response);
+      const response = await realizarLogin({username, password})
 
       // A API retorna: { token, user_data }
       const { token, user } = response; //ajuste 
