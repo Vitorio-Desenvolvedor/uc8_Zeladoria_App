@@ -26,7 +26,6 @@ export default function HistoricoLimpezasScreen() {
   const [historico, setHistorico] = useState<Historico[]>([]);
   const [loading, setLoading] = useState(true);
   const [filtroSala, setFiltroSala] = useState("");
-  console.log(`Procurando... ${filtroSala}`)
   const [filtroFuncionario, setFiltroFuncionario] = useState("");
   const [dataInicio, setDataInicio] = useState<Date | null>(null);
   const [dataFim, setDataFim] = useState<Date | null>(null);

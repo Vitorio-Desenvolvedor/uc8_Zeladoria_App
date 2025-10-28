@@ -16,7 +16,6 @@ export interface RespostaLoginAPI {
   user: UserData
 }
 
-// Usuários
 export interface User {
   id: number;
   username: string;
@@ -25,12 +24,15 @@ export interface User {
   is_superuser?: boolean;
 }
 
+export interface UserProfile {
+  profile_picture: string | null;
+}
+
 export interface UserData extends User {
-  avatar?: string | null;
-  is_superuser: boolean; // reforço para autenticação
-  profile_picture?: string | null;
   nome?: string | null;
-  profile?: string;
+  is_superuser: boolean; 
+  profile?: UserProfile | null; 
+  avatar?: string | null;       
 }
 
 export interface ResponsavelLimpeza {
