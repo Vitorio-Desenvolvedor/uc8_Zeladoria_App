@@ -14,87 +14,66 @@ export default function HomeScreen() {
   const navigation = useNavigation<HomeScreenNavigationProp>();
   const { notificacoes } = useNotificacoes();
 
-  // Contagem de notificações não lidas
   const naoLidas = notificacoes.filter(n => !n.lida).length;
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
+      {/* Cabeçalho */}
       <View style={styles.header}>
         <Text style={styles.headerText}>Bem-vindo{user?.username ? `, ${user.username}` : ""}!</Text>
       </View>
 
-      {/* Botões principais */}
-      <View style={styles.topButtons}>
-        <TouchableOpacity
-          style={styles.topButton}
-          onPress={() => navigation.navigate("Salas")}
-        >
-          <Ionicons name="business" size={28} color="#004A8D" />
-          <Text style={styles.topButtonLabel}>Ver Salas</Text>
+      {/* Área de botões principais */}
+      <View style={styles.grid}>
+        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate("Salas")}>
+          <Ionicons name="business" size={26} color="#004A8D" />
+          <Text style={styles.cardLabel}>Ver Salas</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.topButton}
-          onPress={() => navigation.navigate("HistoricoLimpezas")}
-        >
-          <Ionicons name="time" size={28} color="#004A8D" />
-          <Text style={styles.topButtonLabel}>Histórico de Limpezas</Text>
+        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate("HistoricoLimpezas")}>
+          <Ionicons name="time-outline" size={26} color="#004A8D" />
+          <Text style={styles.cardLabel}>Histórico</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.topButton}
-          onPress={() => navigation.navigate("Notificacao")}
-        >
+        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate("Notificacao")}>
           <View style={styles.notifIconWrapper}>
-            <Ionicons name="notifications-outline" size={28} color="#004A8D" />
+            <Ionicons name="notifications-outline" size={26} color="#004A8D" />
             {naoLidas > 0 && (
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>{naoLidas}</Text>
               </View>
             )}
           </View>
-          <Text style={styles.topButtonLabel}>Notificações</Text>
+          <Text style={styles.cardLabel}>Notificações</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Espaço central */}
+      {/* Texto informativo */}
       <View style={styles.centerContent}>
-        <Text style={styles.centerText}>
-          Escolha uma opção acima para continuar.
-        </Text>
+        <Text style={styles.centerText}>Escolha uma das opções acima para continuar.</Text>
       </View>
 
       {/* Rodapé */}
       <View style={styles.footer}>
-        <TouchableOpacity
-          style={styles.footerButton}
-          onPress={() => navigation.navigate("Home")}
-        >
-          <Ionicons name="home" size={28} color="#fff" />
+        <TouchableOpacity style={styles.footerButton} onPress={() => navigation.navigate("Home")}>
+          <Ionicons name="home" size={24} color="#fff" />
           <Text style={styles.footerLabel}>Home</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.footerButton}
-          onPress={() => navigation.navigate("TelaPerfil")}
-        >
-          <Ionicons name="person-circle" size={28} color="#fff" />
+        <TouchableOpacity style={styles.footerButton} onPress={() => navigation.navigate("TelaPerfil")}>
+          <Ionicons name="person-circle" size={24} color="#fff" />
           <Text style={styles.footerLabel}>Perfil</Text>
         </TouchableOpacity>
 
         {user?.is_staff && (
-          <TouchableOpacity
-            style={styles.footerButton}
-            onPress={() => navigation.navigate("Admin")}
-          >
-            <Ionicons name="settings" size={28} color="#fff" />
+          <TouchableOpacity style={styles.footerButton} onPress={() => navigation.navigate("Admin")}>
+            <Ionicons name="settings-outline" size={24} color="#fff" />
             <Text style={styles.footerLabel}>Admin</Text>
           </TouchableOpacity>
         )}
 
         <TouchableOpacity style={styles.footerButton} onPress={logout}>
-          <Ionicons name="log-out" size={28} color="#E53935" />
+          <Ionicons name="log-out-outline" size={24} color="#E53935" />
           <Text style={[styles.footerLabel, { color: "#E53935" }]}>Sair</Text>
         </TouchableOpacity>
       </View>
@@ -104,33 +83,43 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F4F6F9" },
-  header: { backgroundColor: "#004A8D", padding: 20, alignItems: "center" },
-  headerText: { fontSize: 20, color: "#fff", fontWeight: "bold" },
-  topButtons: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginTop: 20,
-    paddingHorizontal: 10,
-  },
-  topButton: {
-    flexDirection: "column",
+
+  header: {
+    backgroundColor: "#004A8D",
+    paddingVertical: 18,
     alignItems: "center",
-    backgroundColor: "#D6EAF8",
-    padding: 15,
-    borderRadius: 12,
-    width: 120,
-    position: "relative",
   },
-  topButtonLabel: {
-    fontSize: 14,
-    marginTop: 8,
+  headerText: {
+    fontSize: 20,
+    color: "#fff",
     fontWeight: "bold",
+  },
+
+  grid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-evenly",
+    marginTop: 25,
+  },
+  card: {
+    width: "28%",
+    backgroundColor: "#E3F2FD",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 20,
+    borderRadius: 14,
+    marginBottom: 15,
+    elevation: 2,
+  },
+  cardLabel: {
+    fontSize: 13,
+    fontWeight: "600",
     color: "#004A8D",
     textAlign: "center",
+    marginTop: 6,
   },
-  notifIconWrapper: {
-    position: "relative",
-  },
+
+  notifIconWrapper: { position: "relative" },
   badge: {
     position: "absolute",
     top: -5,
@@ -138,18 +127,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#E53935",
     borderRadius: 8,
     paddingHorizontal: 5,
-    paddingVertical: 1,
     minWidth: 16,
     alignItems: "center",
     justifyContent: "center",
   },
-  badgeText: {
-    color: "#fff",
-    fontSize: 10,
-    fontWeight: "bold",
-  },
+  badgeText: { color: "#fff", fontSize: 10, fontWeight: "bold" },
+
   centerContent: { flex: 1, justifyContent: "center", alignItems: "center" },
-  centerText: { fontSize: 16, color: "#555", textAlign: "center", paddingHorizontal: 20 },
+  centerText: { fontSize: 15, color: "#555", textAlign: "center", paddingHorizontal: 25 },
+
   footer: {
     flexDirection: "row",
     justifyContent: "space-around",

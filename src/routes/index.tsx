@@ -23,7 +23,7 @@ import RegistroLimpezaScreen from "../screens/RegistroLimpezaScreen";
 import IniciarLimpezaScreen from "../screens/IniciarLimpezaScreen";
 import ConcluirLimpezaScreen from "../screens/ConcluirLimpezaScreen";
 
-import { AuthContext } from "../context/AuthContext";
+import {AuthContext } from "../context/AuthContext";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 

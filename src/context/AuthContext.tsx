@@ -4,49 +4,47 @@ import { AuthContextType, UserData } from "../routes/types";
 import { realizarLogin } from "../services/servicoAutenticacao";
 import { removerToken, salvarToken } from "../services/servicoArmazenamento";
 
-
+// Criação do contexto
 export const AuthContext = createContext<AuthContextType | null>(null);
 
+// Provider do Auth
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserData | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null); //  para tratar mensagens de erro
+  const [error, setError] = useState<string | null>(null);
 
-  // 🔹 Função de login real com API
   const login = async (username: string, password: string) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await realizarLogin({username, password})
+      const response = await realizarLogin({ username, password });
+      const { token, user } = response;
 
-      // A API retorna: { token, user_data }
-      const { token, user } = response; //ajuste 
-
-      await salvarToken(token)
-
+      await salvarToken(token);
       setToken(token);
-      setUser(user); // ajuste 
+      setUser(user);
 
-      console.log("Login realizado com sucesso:", user); //ajuste 
+      console.log("Login realizado com sucesso:", user);
     } catch (err: any) {
       console.error("Erro no login:", err.response?.data || err.message);
-      setError("Usuário ou senha inválidos."); // mensagem de usuário ou senha errados
+      setError("Usuário ou senha inválidos.");
     } finally {
       setLoading(false);
     }
   };
 
-  // 🔹 Função de logout
   const logout = async () => {
     setUser(null);
     setToken(null);
     setError(null);
-    await removerToken()
+    await removerToken();
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, loading, error, }}>
+    <AuthContext.Provider
+      value={{ user, token, login, logout, loading, error }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -55,6 +53,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 // Hook personalizado para acessar o contexto
 export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth deve ser usado dentro de AuthProvider");
+  if (!context) throw new Error();
   return context;
 }

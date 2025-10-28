@@ -13,7 +13,7 @@ export interface CredenciaisLogin {
 
 export interface RespostaLoginAPI {
   token: string;
-  user: UserData;
+  user: UserData
 }
 
 // Usuários
@@ -28,6 +28,9 @@ export interface User {
 export interface UserData extends User {
   avatar?: string | null;
   is_superuser: boolean; // reforço para autenticação
+  profile_picture?: string | null;
+  nome?: string | null;
+  profile?: string;
 }
 
 export interface ResponsavelLimpeza {
