@@ -31,8 +31,9 @@ export interface UserProfile {
 export interface UserData extends User {
   nome?: string | null;
   is_superuser: boolean; 
-  profile?: UserProfile | null; 
-  avatar?: string | null;       
+  profile?: UserProfile | null | undefined;  
+  avatar?: string | null;
+  profile_picture?: string | null;   
 }
 
 export interface ResponsavelLimpeza {
@@ -111,5 +112,5 @@ export type RootStackParamList = {
   HistoricoLimpezas: undefined;
   RegistroLimpeza: { salaId: string | number };
   IniciarLimpeza: { salaId: string | number; onSuccess?: () => void };
-  ConcluirLimpeza: { salaId: string | number; onSuccess?: () => void };
+  ConcluirLimpeza: { salaId: string | number; registroId?: number; onSuccess?: () => void };
 };

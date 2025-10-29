@@ -1,4 +1,3 @@
-// src/hooks/useNotificacoes.ts
 import { useState, useEffect, useCallback } from "react";
 import NotificacaoAPI from "../api/notificacoesApi";
 import { Notificacao } from "../routes/types";

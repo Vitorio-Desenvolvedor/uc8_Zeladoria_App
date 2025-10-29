@@ -10,14 +10,15 @@ import {
   Alert,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { useRoute, useNavigation } from "@react-navigation/native";
-import { Ionicons } from "@expo/vector-icons"; // Ícones modernos
+import { useRoute, useNavigation, RouteProp } from "@react-navigation/native";
+import { Ionicons } from "@expo/vector-icons";
 import SalaAPI from "../api/salasApi";
+import { RootStackParamList } from "../routes/types"; // ✅ importa os tipos corretos
 
 export default function ConcluirLimpezaScreen() {
-  const route = useRoute<any>();
+  const route = useRoute<RouteProp<RootStackParamList, "ConcluirLimpeza">>();
   const navigation = useNavigation();
-  const { salaId, registroId } = route.params;
+  const { salaId, registroId } = route.params; // ✅ agora funciona corretamente
 
   const [observacoes, setObservacoes] = useState("");
   const [foto, setFoto] = useState<string | null>(null);
@@ -60,34 +61,36 @@ export default function ConcluirLimpezaScreen() {
     }
   };
 
-  // Remover foto selecionada
-  const removerFoto = () => {
-    setFoto(null);
-  };
+  // Remover foto
+  const removerFoto = () => setFoto(null);
 
-  // Concluir limpeza
+  // ✅ Função para concluir limpeza
   const concluirLimpeza = async () => {
     if (!foto) {
       Alert.alert("Erro", "Você precisa tirar ou escolher uma foto!");
       return;
     }
 
+    if (!registroId) {
+      Alert.alert("Erro", "ID do registro não encontrado!");
+      return;
+    }
+
     setLoading(true);
     try {
-      console.log(" Enviando foto de limpeza...");
+      console.log("📸 Enviando foto...");
       await SalaAPI.enviarFotoLimpeza(registroId, foto);
 
-      console.log(" Concluindo limpeza...");
+      console.log("🧼 Concluindo limpeza...");
       await SalaAPI.concluirLimpeza(salaId, observacoes);
 
-      Alert.alert("Sucesso", "Limpeza concluída com sucesso!");
+      Alert.alert("✅ Sucesso", "Limpeza concluída com sucesso!");
       navigation.goBack();
     } catch (error: any) {
       console.error("Erro ao concluir limpeza:", error.response?.data || error.message);
       Alert.alert(
         "Erro",
-        error.response?.data?.detail ||
-          "Não foi possível concluir a limpeza. Tente novamente."
+        error.response?.data?.detail || "Não foi possível concluir a limpeza. Tente novamente."
       );
     } finally {
       setLoading(false);
@@ -106,7 +109,7 @@ export default function ConcluirLimpezaScreen() {
         multiline
       />
 
-      {/* Área de seleção de imagem */}
+      {/* Área de imagem */}
       <View style={styles.imageContainer}>
         {foto ? (
           <View style={styles.previewContainer}>
@@ -146,6 +149,7 @@ export default function ConcluirLimpezaScreen() {
   );
 }
 
+// 🧾 Estilos
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff", padding: 20 },
   title: { fontSize: 22, fontWeight: "bold", marginBottom: 20, color: "#004A8D" },

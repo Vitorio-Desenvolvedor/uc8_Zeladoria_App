@@ -20,7 +20,7 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container}>
       {/* Cabeçalho */}
       <View style={styles.header}>
-        <Text style={styles.headerText}>Bem-vindo{user?.username ? `, ${user.username}` : ""}!</Text>
+        <Text style={styles.headerText}>Bem-vindo</Text>
       </View>
 
       {/* Área de botões principais */}

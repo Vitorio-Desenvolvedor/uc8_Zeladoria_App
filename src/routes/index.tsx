@@ -19,7 +19,6 @@ import TelaAdmin from "../screens/TelaAdmin";
 import FormEditSalaScreen from "../screens/FormEditSalaScreen";
 
 // Limpeza
-import RegistroLimpezaScreen from "../screens/RegistroLimpezaScreen";
 import IniciarLimpezaScreen from "../screens/IniciarLimpezaScreen";
 import ConcluirLimpezaScreen from "../screens/ConcluirLimpezaScreen";
 
@@ -53,17 +52,13 @@ export default function Routes() {
             <Stack.Screen name="Salas" component={SalasScreen} />
             <Stack.Screen name="SalaDetalhes" component={SalaDetalhesScreen} options={{title: "Detalhes da Sala"}} />
             <Stack.Screen name="TelaPerfil" component={TelaPerfil} />
-            <Stack.Screen name="HistoricoLimpezas" component={HistoricoLimpezasScreen} />
+            <Stack.Screen name="HistoricoLimpezas" component={HistoricoLimpezasScreen} options={{ title: "Historio de Limpezas"}} />
 
             {/* TELAS DE LIMPEZA ACESSÍVEIS A ZELADORES */}
-            <Stack.Screen
-              name="RegistroLimpeza"
-              component={RegistroLimpezaScreen}
-              options={{ title: "Histórico de Limpezas" }}
-            />
+         
             <Stack.Screen
               name="IniciarLimpeza"
-              component={IniciarLimpezaScreen}
+              component={IniciarLimpezaScreen }
               options={{ title: "Iniciar Limpeza" }}
             />
             <Stack.Screen

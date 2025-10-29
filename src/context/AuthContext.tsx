@@ -1,10 +1,9 @@
-// src/context/AuthContext.tsx
 import React, { createContext, useState, useContext, ReactNode, useEffect } from "react";
 import api from "../api/api";
 import { realizarLogin } from "../services/servicoAutenticacao";
 import { salvarToken, removerToken, obterToken } from "../services/servicoArmazenamento";
 
-// --- Tipos ---
+// Tipos 
 export interface UserProfile {
   profile_picture?: string | null;
 }
@@ -44,15 +43,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null);
     try {
       const response = await realizarLogin({ username, password });
-      const { token, user } = response;
-
+      const token = response.token;
       await salvarToken(token);
-
+  
+      const userRaw = response.user;
+  
       const parsedUser: UserData = {
-        ...user,
-        avatar: user.profile?.profile_picture || null,
+        ...userRaw,
+        avatar: userRaw.profile?.profile_picture || null, 
       };
-
+  
       setUser(parsedUser);
       setToken(token);
     } catch (err: any) {
@@ -62,7 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     }
   };
-
+  
   //  Função de logout
   const logout = async () => {
     setUser(null);
