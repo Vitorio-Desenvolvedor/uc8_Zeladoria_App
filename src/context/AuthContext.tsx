@@ -1,9 +1,9 @@
-import React, { createContext, useState, useContext, ReactNode, useEffect } from "react";
+import React, { createContext, useState, useContext, ReactNode } from "react";
 import api from "../api/api";
 import { realizarLogin } from "../services/servicoAutenticacao";
-import { salvarToken, removerToken, obterToken } from "../services/servicoArmazenamento";
+import { salvarToken, removerToken } from "../services/servicoArmazenamento";
 
-// Tipos 
+// Tipos
 export interface UserProfile {
   profile_picture?: string | null;
 }
@@ -45,14 +45,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const response = await realizarLogin({ username, password });
       const token = response.token;
       await salvarToken(token);
-  
+
       const userRaw = response.user;
-  
+
       const parsedUser: UserData = {
         ...userRaw,
-        avatar: userRaw.profile?.profile_picture || null, 
+        avatar: userRaw.profile?.profile_picture || null,
       };
-  
+
       setUser(parsedUser);
       setToken(token);
     } catch (err: any) {
@@ -62,41 +62,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     }
   };
-  
-  //  Função de logout
+
+  // Função de logout
   const logout = async () => {
     setUser(null);
     setToken(null);
     setError(null);
     await removerToken();
   };
-
-  //  Carregar token salvo ao iniciar
-  useEffect(() => {
-    const carregarToken = async () => {
-      setLoading(true);
-      const savedToken = await obterToken();
-      if (savedToken) {
-        setToken(savedToken);
-        try {
-          const response = await api.get<UserData>("/accounts/current_user/", {
-            headers: { Authorization: `Token ${savedToken}` },
-          });
-          const parsedUser: UserData = {
-            ...response.data,
-            avatar: response.data.profile?.profile_picture || null,
-          };
-          setUser(parsedUser);
-        } catch (err) {
-          console.error("Erro ao carregar usuário logado:", err);
-          await removerToken();
-          setToken(null);
-        }
-      }
-      setLoading(false);
-    };
-    carregarToken();
-  }, []);
 
   return (
     <AuthContext.Provider value={{ user, token, login, logout, loading, error }}>

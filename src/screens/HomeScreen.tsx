@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useMemo, useCallback } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from "react-native";
 import { useAuth } from "../context/AuthContext";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../routes/types";
 import { Ionicons } from "@expo/vector-icons";
@@ -12,9 +12,19 @@ type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, "H
 export default function HomeScreen() {
   const { user, logout } = useAuth();
   const navigation = useNavigation<HomeScreenNavigationProp>();
-  const { notificacoes } = useNotificacoes();
+  const { notificacoes, carregarNotificacoes } = useNotificacoes();
 
-  const naoLidas = notificacoes.filter(n => !n.lida).length;
+  // Recarrega notificações sempre que o usuário voltar para a Home
+  useFocusEffect(
+    useCallback(() => {
+      carregarNotificacoes();
+    }, [carregarNotificacoes])
+  );
+
+  // Conta quantas notificações não lidas existem
+  const naoLidas = useMemo(() => {
+    return notificacoes.filter((n) => !n.lida).length;
+  }, [notificacoes]);
 
   return (
     <SafeAreaView style={styles.container}>

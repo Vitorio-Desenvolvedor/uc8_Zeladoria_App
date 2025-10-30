@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native"; 
 import { useNotificacoes } from "../hooks/useNotificacoes";
 
 export default function NotificacoesScreen() {
@@ -17,7 +18,15 @@ export default function NotificacoesScreen() {
     error,
     marcarComoLida,
     marcarTodasComoLidas,
+    carregarNotificacoes, // Vamos usar este
   } = useNotificacoes();
+
+  // Recarrega notificações ao focar na tela
+  useFocusEffect(
+    useCallback(() => {
+      carregarNotificacoes();
+    }, [carregarNotificacoes])
+  );
 
   if (loading)
     return (
@@ -40,7 +49,10 @@ export default function NotificacoesScreen() {
       {/* Cabeçalho */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Notificações</Text>
-        <TouchableOpacity style={styles.readAllButton} onPress={marcarTodasComoLidas}>
+        <TouchableOpacity
+          style={styles.readAllButton}
+          onPress={marcarTodasComoLidas}
+        >
           <Ionicons name="checkmark-done-outline" size={20} color="#fff" />
           <Text style={styles.readAllText}>Marcar todas como lidas</Text>
         </TouchableOpacity>

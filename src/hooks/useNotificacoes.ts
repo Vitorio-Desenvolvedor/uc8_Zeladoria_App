@@ -7,11 +7,11 @@ export function useNotificacoes() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Carregar notificações
+  // Carrega todas as notificações da API
   const carregarNotificacoes = useCallback(async () => {
-    setLoading(true);
-    setError(null);
     try {
+      setLoading(true);
+      setError(null);
       const dados = await NotificacaoAPI.listarNotificacoes();
       setNotificacoes(dados);
     } catch (err: any) {
@@ -46,11 +46,18 @@ export function useNotificacoes() {
     }
   }, []);
 
-  // Carregar notificações ao montar o hook
+  // Atualiza automaticamente a cada X segundos
   useEffect(() => {
     carregarNotificacoes();
+
+    const intervalo = setInterval(() => {
+      carregarNotificacoes();
+    }, 15000); // 15 segundos
+
+    return () => clearInterval(intervalo);
   }, [carregarNotificacoes]);
 
+  // Exporta também para ser chamado manualmente
   return {
     notificacoes,
     loading,
@@ -58,5 +65,6 @@ export function useNotificacoes() {
     carregarNotificacoes,
     marcarComoLida,
     marcarTodasComoLidas,
+    refreshNotificacoes: carregarNotificacoes,
   };
 }
