@@ -1,16 +1,19 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
-  FlatList,
   ActivityIndicator,
   Alert,
+  Animated,
+  Easing,
+  RefreshControl,
+  FlatList,
 } from "react-native";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { RootStackParamList, Sala } from "../routes/types";
-import SalaAPI from "../api/salasApi"; // usa os métodos getAllSalas/getSalaById...
+import SalaAPI from "../api/salasApi";
 import { Ionicons } from "@expo/vector-icons";
 
 type SalasNavigationProp = NavigationProp<RootStackParamList, "Salas">;
@@ -18,106 +21,146 @@ type SalasNavigationProp = NavigationProp<RootStackParamList, "Salas">;
 export default function SalasScreen() {
   const [salas, setSalas] = useState<Sala[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const navigation = useNavigation<SalasNavigationProp>();
 
-  // Função para buscar todas as salas na API
+  // Animations refs
+  const animatedValues = useRef<Animated.Value[]>([]).current;
+
+  // Buscar todas as salas
   const fetchSalas = async () => {
-    setLoading(true);
+    if (!refreshing) setLoading(true);
+
     try {
       const data = await SalaAPI.getAllSalas();
       setSalas(data);
+
+      // Inicializa animações
+      animatedValues.length = 0;
+      data.forEach(() => animatedValues.push(new Animated.Value(0)));
+      animateCards();
     } catch (error: any) {
       console.error("Erro ao carregar salas:", error.message || error);
-      Alert.alert("Erro", "Não foi possível carregar as salas.");
+      Alert.alert("Erro", "Não foi possível carregar as salas. Tente novamente.");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
-  // Carregar salas ao montar o componente
   useEffect(() => {
     fetchSalas();
   }, []);
 
-  // Navega para a tela de criação de nova sala
+  const animateCards = () => {
+    const animations = animatedValues.map((anim, index) =>
+      Animated.timing(anim, {
+        toValue: 1,
+        duration: 400,
+        delay: index * 100,
+        useNativeDriver: true,
+        easing: Easing.out(Easing.ease),
+      })
+    );
+    Animated.stagger(50, animations).start();
+  };
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchSalas();
+  };
+
   const criarSala = () => {
     navigation.navigate("FormSala", { onSalaCriada: fetchSalas } as any);
   };
 
-  // Abre os detalhes de uma sala específica
   const abrirDetalhes = (s: Sala) => {
-    const salaId = s.qr_code_id ?? s.id; // usa o QR code se disponível
+    const salaId = s.qr_code_id ?? s.id;
     navigation.navigate("SalaDetalhes", { salaId } as any);
   };
 
-  // Retorna uma cor de texto com base no status da limpeza
   const getStatusColor = (status?: string) => {
     const s = (status || "").toLowerCase();
-    if (s.includes("suja")) return "#e53935";
-    if (s.includes("em limpeza")) return "#fb8c00";
-    if (s.includes("pendente")) return "#757575";
-    if (s.includes("limpa")) return "#43a047";
+    if (s.includes("suja")) return "#f44336";
+    if (s.includes("em limpeza")) return "#ff9800";
+    if (s.includes("pendente")) return "#9e9e9e";
+    if (s.includes("limpa")) return "#4caf50";
     return "#000";
   };
 
-  // Renderiza cada item da lista (uma sala)
-  const renderSala = ({ item }: { item: Sala }) => (
-    <TouchableOpacity style={styles.card} onPress={() => abrirDetalhes(item)}>
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <View style={{ flex: 1 }}>
-          <Text style={styles.nome}>{item.nome_numero}</Text>
-          <Text style={styles.descricao}>{item.descricao || "Sem descrição"}</Text>
-          <Text style={styles.label}>Capacidade: {item.capacidade ?? "N/A"}</Text>
-        </View>
+  const renderSala = ({ item, index }: { item: Sala; index: number }) => {
+    const translateY = animatedValues[index].interpolate({
+      inputRange: [0, 1],
+      outputRange: [20, 0],
+    });
+    const opacity = animatedValues[index];
 
-        <View style={{ alignItems: "flex-end", marginLeft: 10 }}>
-          <Ionicons name="chevron-forward" size={24} color="#999" />
-          <Text
-            style={[
-              styles.status,
-              { color: getStatusColor(item.status_limpeza) },
-            ]}
-          >
-            {item.status_limpeza ?? "Desconhecido"}
-          </Text>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
+    return (
+      <Animated.View style={{ opacity, transform: [{ translateY }] }}>
+        <TouchableOpacity
+          style={styles.card}
+          onPress={() => abrirDetalhes(item)}
+          activeOpacity={0.8}
+        >
+          <View style={styles.cardContent}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.nome}>{item.nome_numero}</Text>
+              <Text style={styles.descricao}>{item.descricao || "Sem descrição"}</Text>
+              <Text style={styles.label}>Capacidade: {item.capacidade ?? "N/A"}</Text>
+            </View>
+            <View style={styles.statusContainer}>
+              <Ionicons name="chevron-forward" size={24} color="#bbb" />
+              <Text
+                style={[
+                  styles.status,
+                  { color: getStatusColor(item.status_limpeza) },
+                ]}
+              >
+                {item.status_limpeza ?? "Desconhecido"}
+              </Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Animated.View>
+    );
+  };
 
   if (loading) {
     return (
       <View style={styles.loader}>
         <ActivityIndicator size="large" color="#004A8D" />
-        <Text style={{ marginTop: 10 }}>Carregando salas...</Text>
+        <Text style={{ marginTop: 12, fontSize: 16, color: "#004A8D" }}>
+          Carregando salas...
+        </Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      {/* Botão para criar nova sala */}
-      <TouchableOpacity style={styles.createButton} onPress={criarSala}>
+      <TouchableOpacity
+        style={styles.createButton}
+        onPress={criarSala}
+        activeOpacity={0.8}
+      >
         <Text style={styles.createButtonText}>+ Criar Nova Sala</Text>
       </TouchableOpacity>
 
-      {/* Lista ou mensagem quando vazia */}
       {salas.length === 0 ? (
         <View style={styles.center}>
-          <Text>Nenhuma sala encontrada.</Text>
+          <Text style={{ fontSize: 16, color: "#555" }}>
+            Nenhuma sala encontrada.
+          </Text>
         </View>
       ) : (
-        <FlatList
+        <Animated.FlatList
           data={salas}
           keyExtractor={(item) => String(item.qr_code_id ?? item.id)}
           renderItem={renderSala}
-          contentContainerStyle={{ paddingBottom: 20 }}
+          contentContainerStyle={{ paddingBottom: 30 }}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#004A8D']} />
+          }
         />
       )}
     </View>
@@ -127,8 +170,8 @@ export default function SalasScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 15,
-    backgroundColor: "#F4F6F9",
+    padding: 16,
+    backgroundColor: "#f4f6f9",
   },
   loader: {
     flex: 1,
@@ -142,30 +185,40 @@ const styles = StyleSheet.create({
   },
   createButton: {
     backgroundColor: "#004A8D",
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 15,
+    paddingVertical: 14,
+    borderRadius: 10,
+    marginBottom: 20,
     alignItems: "center",
+    shadowColor: "#004A8D",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
   },
   createButtonText: {
     color: "#fff",
     fontWeight: "bold",
-    fontSize: 16,
+    fontSize: 17,
   },
   card: {
     backgroundColor: "#fff",
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 12,
+    padding: 18,
+    borderRadius: 12,
+    marginBottom: 14,
     shadowColor: "#000",
-    shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 5,
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
     elevation: 3,
+  },
+  cardContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   nome: {
     fontSize: 18,
-    fontWeight: "bold",
+    fontWeight: "700",
     color: "#004A8D",
   },
   descricao: {
@@ -174,13 +227,17 @@ const styles = StyleSheet.create({
     marginVertical: 5,
   },
   label: {
-    fontSize: 14,
+    fontSize: 13,
     color: "#333",
-    marginTop: 4,
+    marginTop: 3,
+  },
+  statusContainer: {
+    alignItems: "flex-end",
+    marginLeft: 12,
   },
   status: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: "700",
-    marginTop: 8,
+    marginTop: 6,
   },
 });
