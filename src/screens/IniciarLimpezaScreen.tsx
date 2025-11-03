@@ -18,7 +18,7 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList, "IniciarLimp
 export default function IniciarLimpezaScreen() {
   const route = useRoute<any>();
   const navigation = useNavigation<NavigationProp>();
-  const { salaId } = route.params; // 🔹 removido o onSuccess para evitar warning
+  const { salaId } = route.params; // removido o onSuccess para evitar warning
 
   const [observacao, setObservacao] = useState("");
   const [loading, setLoading] = useState(false);
@@ -84,7 +84,7 @@ export default function IniciarLimpezaScreen() {
   );
 }
 
-// === Estilos ===
+// Estilos
 const styles = StyleSheet.create({
   container: {
     flex: 1,

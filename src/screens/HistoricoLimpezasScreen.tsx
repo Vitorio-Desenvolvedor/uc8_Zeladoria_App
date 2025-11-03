@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
 import api from "../api/api";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { useFocusEffect } from "@react-navigation/native";
 
 type Historico = {
   id: number;
@@ -18,7 +19,7 @@ type Historico = {
   sala_nome: string;
   funcionario_responsavel: string;
   data_hora_inicio: string;
-  data_hora_fim: string;
+  data_hora_fim: string | null;
   observacoes?: string;
 };
 
@@ -60,10 +61,18 @@ export default function HistoricoLimpezasScreen() {
     fetchHistorico();
   }, []);
 
+  // 🔄 Atualiza automaticamente quando a tela volta para o foco
+  useFocusEffect(
+    useCallback(() => {
+      fetchHistorico();
+    }, [])
+  );
+
   const aplicarFiltros = () => fetchHistorico();
 
-  const getStatusColor = (observacoes?: string) =>
-    observacoes ? "#27AE60" : "#F39C12";
+  // 🟢 Define cor com base no status real (fim da limpeza)
+  const getStatusColor = (data_hora_fim: string | null) =>
+    data_hora_fim ? "#27AE60" : "#F39C12";
 
   if (loading) {
     return (
@@ -109,9 +118,7 @@ export default function HistoricoLimpezasScreen() {
           >
             <Ionicons name="calendar" size={20} color="#004A8D" />
             <Text style={styles.dateText}>
-              {dataInicio
-                ? dataInicio.toLocaleDateString()
-                : "Data início"}
+              {dataInicio ? dataInicio.toLocaleDateString() : "Data início"}
             </Text>
           </TouchableOpacity>
 
@@ -167,7 +174,7 @@ export default function HistoricoLimpezasScreen() {
           data={historico}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => {
-            const statusColor = getStatusColor(item.observacoes);
+            const statusColor = getStatusColor(item.data_hora_fim);
             const dataFormatada = new Date(
               item.data_hora_fim || item.data_hora_inicio
             ).toLocaleString();
@@ -199,17 +206,13 @@ export default function HistoricoLimpezasScreen() {
                   />
                   <Text style={[styles.cardText, { color: statusColor }]}>
                     Status:{" "}
-                    {item.observacoes ? "Finalizada" : "Em andamento"}
+                    {item.data_hora_fim ? "Finalizada" : "Em andamento"}
                   </Text>
                 </View>
 
                 {item.observacoes && (
                   <View style={styles.cardRow}>
-                    <Ionicons
-                      name="chatbox-ellipses"
-                      size={18}
-                      color="#555"
-                    />
+                    <Ionicons name="chatbox-ellipses" size={18} color="#555" />
                     <Text
                       style={[styles.cardText, { fontStyle: "italic" }]}
                     >
@@ -236,7 +239,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 20,
   },
-
   filtrosContainer: {
     backgroundColor: "#EAF2FB",
     padding: 15,
@@ -247,7 +249,6 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 2,
   },
-
   inputRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -258,20 +259,17 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     paddingHorizontal: 10,
   },
-
   input: {
     flex: 1,
     padding: 10,
     fontSize: 14,
     color: "#333",
   },
-
   dateRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 10,
   },
-
   dateButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -284,9 +282,7 @@ const styles = StyleSheet.create({
     flex: 1,
     marginHorizontal: 4,
   },
-
   dateText: { marginLeft: 6, color: "#555", fontSize: 14 },
-
   botaoAplicar: {
     flexDirection: "row",
     alignItems: "center",
@@ -296,14 +292,12 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginTop: 5,
   },
-
   botaoTexto: {
     color: "#fff",
     fontWeight: "bold",
     fontSize: 15,
     marginLeft: 6,
   },
-
   card: {
     backgroundColor: "#fff",
     padding: 15,
@@ -316,7 +310,6 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 3,
   },
-
   cardHeader: { flexDirection: "row", alignItems: "center", marginBottom: 8 },
   cardSala: {
     fontSize: 16,
@@ -326,7 +319,6 @@ const styles = StyleSheet.create({
   },
   cardRow: { flexDirection: "row", alignItems: "center", marginTop: 5 },
   cardText: { fontSize: 14, color: "#555", marginLeft: 6 },
-
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
   emptyText: { marginTop: 10, color: "#777", fontSize: 16 },
   loadingText: { color: "#555", marginTop: 10 },

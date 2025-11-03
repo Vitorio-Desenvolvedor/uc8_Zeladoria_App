@@ -13,12 +13,12 @@ import * as ImagePicker from "expo-image-picker";
 import { useRoute, useNavigation, RouteProp } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import SalaAPI from "../api/salasApi";
-import { RootStackParamList } from "../routes/types"; // ✅ importa os tipos corretos
+import { RootStackParamList } from "../routes/types";
 
 export default function ConcluirLimpezaScreen() {
   const route = useRoute<RouteProp<RootStackParamList, "ConcluirLimpeza">>();
   const navigation = useNavigation();
-  const { salaId, registroId } = route.params; // ✅ agora funciona corretamente
+  const { salaId, registroId } = route.params; 
 
   const [observacoes, setObservacoes] = useState("");
   const [foto, setFoto] = useState<string | null>(null);
@@ -64,7 +64,7 @@ export default function ConcluirLimpezaScreen() {
   // Remover foto
   const removerFoto = () => setFoto(null);
 
-  // ✅ Função para concluir limpeza
+ 
   const concluirLimpeza = async () => {
     if (!foto) {
       Alert.alert("Erro", "Você precisa tirar ou escolher uma foto!");
@@ -149,7 +149,7 @@ export default function ConcluirLimpezaScreen() {
   );
 }
 
-// 🧾 Estilos
+//  Estilos
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff", padding: 20 },
   title: { fontSize: 22, fontWeight: "bold", marginBottom: 20, color: "#004A8D" },
