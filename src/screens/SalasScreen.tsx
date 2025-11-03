@@ -10,6 +10,9 @@ import {
   Easing,
   RefreshControl,
   FlatList,
+  TextInput,
+  Modal,
+  ScrollView,
 } from "react-native";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { RootStackParamList, Sala } from "../routes/types";
@@ -20,22 +23,22 @@ type SalasNavigationProp = NavigationProp<RootStackParamList, "Salas">;
 
 export default function SalasScreen() {
   const [salas, setSalas] = useState<Sala[]>([]);
+  const [filteredSalas, setFilteredSalas] = useState<Sala[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [search, setSearch] = useState("");
+  const [statusFiltro, setStatusFiltro] = useState<string | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
   const navigation = useNavigation<SalasNavigationProp>();
-
-  // Animations refs
   const animatedValues = useRef<Animated.Value[]>([]).current;
 
-  // Buscar todas as salas
+  // Buscar salas
   const fetchSalas = async () => {
     if (!refreshing) setLoading(true);
-
     try {
       const data = await SalaAPI.getAllSalas();
       setSalas(data);
-
-      // Inicializa animações
+      setFilteredSalas(data);
       animatedValues.length = 0;
       data.forEach(() => animatedValues.push(new Animated.Value(0)));
       animateCards();
@@ -63,6 +66,31 @@ export default function SalasScreen() {
       })
     );
     Animated.stagger(50, animations).start();
+  };
+
+  // Filtrar salas
+  useEffect(() => {
+    filtrarSalas();
+  }, [search, statusFiltro, salas]);
+
+  const filtrarSalas = () => {
+    let filtradas = salas;
+    if (search.trim()) {
+      filtradas = filtradas.filter((s) =>
+        s.nome_numero?.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+    if (statusFiltro) {
+      filtradas = filtradas.filter(
+        (s) => s.status_limpeza?.toLowerCase() === statusFiltro.toLowerCase()
+      );
+    }
+    setFilteredSalas(filtradas);
+  };
+
+  const limparFiltro = () => {
+    setStatusFiltro(null);
+    setModalVisible(false);
   };
 
   const onRefresh = () => {
@@ -105,8 +133,12 @@ export default function SalasScreen() {
           <View style={styles.cardContent}>
             <View style={{ flex: 1 }}>
               <Text style={styles.nome}>{item.nome_numero}</Text>
-              <Text style={styles.descricao}>{item.descricao || "Sem descrição"}</Text>
-              <Text style={styles.label}>Capacidade: {item.capacidade ?? "N/A"}</Text>
+              <Text style={styles.descricao}>
+                {item.descricao || "Sem descrição"}
+              </Text>
+              <Text style={styles.label}>
+                Capacidade: {item.capacidade ?? "N/A"}
+              </Text>
             </View>
             <View style={styles.statusContainer}>
               <Ionicons name="chevron-forward" size={24} color="#bbb" />
@@ -138,15 +170,25 @@ export default function SalasScreen() {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.createButton}
-        onPress={criarSala}
-        activeOpacity={0.8}
-      >
-        <Text style={styles.createButtonText}>+ Criar Nova Sala</Text>
-      </TouchableOpacity>
+      {/* Barra de busca */}
+      <View style={styles.searchContainer}>
+        <TextInput
+          placeholder="Buscar por nome da sala..."
+          placeholderTextColor="#888"
+          value={search}
+          onChangeText={setSearch}
+          style={styles.searchInput}
+        />
+        <TouchableOpacity
+          style={styles.filterIcon}
+          onPress={() => setModalVisible(true)}
+        >
+          <Ionicons name="filter" size={24} color="#FF7300" />
+        </TouchableOpacity>
+      </View>
 
-      {salas.length === 0 ? (
+      {/* Lista de salas */}
+      {filteredSalas.length === 0 ? (
         <View style={styles.center}>
           <Text style={{ fontSize: 16, color: "#555" }}>
             Nenhuma sala encontrada.
@@ -154,56 +196,115 @@ export default function SalasScreen() {
         </View>
       ) : (
         <Animated.FlatList
-          data={salas}
+          data={filteredSalas}
           keyExtractor={(item) => String(item.qr_code_id ?? item.id)}
           renderItem={renderSala}
-          contentContainerStyle={{ paddingBottom: 30 }}
+          contentContainerStyle={{ paddingBottom: 100 }}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#004A8D']} />
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={["#004A8D"]}
+            />
           }
         />
       )}
+
+      {/* Botão fixo Criar Sala */}
+      <TouchableOpacity
+        style={styles.createButtonFixed}
+        onPress={criarSala}
+        activeOpacity={0.8}
+      >
+        <Ionicons name="add-circle-outline" size={22} color="#fff" />
+        <Text style={styles.createButtonText}>Criar Nova Sala</Text>
+      </TouchableOpacity>
+
+      {/* Modal de filtro */}
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Filtrar por Status</Text>
+            {["Limpeza Pendente", "Em Limpeza", "Limpa", "Suja"].map(
+              (status) => (
+                <TouchableOpacity
+                  key={status}
+                  style={[
+                    styles.modalButton,
+                    statusFiltro === status ? styles.modalButtonActive : {},
+                  ]}
+                  onPress={() => setStatusFiltro(status)}
+                >
+                  <Text
+                    style={[
+                      styles.modalButtonText,
+                      statusFiltro === status
+                        ? styles.modalButtonTextActive
+                        : {},
+                    ]}
+                  >
+                    {status}
+                  </Text>
+                </TouchableOpacity>
+              )
+            )}
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={styles.modalActionButton}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={styles.modalActionText}>Aplicar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalActionButton, { backgroundColor: "#ccc" }]}
+                onPress={limparFiltro}
+              >
+                <Text style={styles.modalActionText}>Cancelar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: "#f4f6f9",
-  },
-  loader: {
-    flex: 1,
-    justifyContent: "center",
+  container: { flex: 1, backgroundColor: "#f4f6f9" },
+  loader: { flex: 1, justifyContent: "center", alignItems: "center" },
+  center: { flex: 1, justifyContent: "center", alignItems: "center" },
+
+  searchContainer: {
+    flexDirection: "row",
     alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
   },
-  center: {
+  searchInput: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  createButton: {
-    backgroundColor: "#004A8D",
-    paddingVertical: 14,
+    backgroundColor: "#f1f1f1",
     borderRadius: 10,
-    marginBottom: 20,
-    alignItems: "center",
-    shadowColor: "#004A8D",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 4,
+    padding: 10,
+    fontSize: 15,
+    color: "#333",
   },
-  createButtonText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 17,
+  filterIcon: {
+    marginLeft: 10,
   },
+
   card: {
     backgroundColor: "#fff",
     padding: 18,
     borderRadius: 12,
+    marginHorizontal: 16,
     marginBottom: 14,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
@@ -211,33 +312,41 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 3,
   },
-  cardContent: {
+  cardContent: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  nome: { fontSize: 18, fontWeight: "700", color: "#004A8D" },
+  descricao: { fontSize: 14, color: "#555", marginVertical: 5 },
+  label: { fontSize: 13, color: "#333", marginTop: 3 },
+  statusContainer: { alignItems: "flex-end", marginLeft: 12 },
+  status: { fontSize: 13, fontWeight: "700", marginTop: 6 },
+
+  createButtonFixed: {
+    position: "absolute",
+    bottom: 20,
+    left: 16,
+    right: 16,
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#004A8D",
+    paddingVertical: 14,
+    borderRadius: 10,
+    shadowColor: "#004A8D",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
   },
-  nome: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#004A8D",
-  },
-  descricao: {
-    fontSize: 14,
-    color: "#555",
-    marginVertical: 5,
-  },
-  label: {
-    fontSize: 13,
-    color: "#333",
-    marginTop: 3,
-  },
-  statusContainer: {
-    alignItems: "flex-end",
-    marginLeft: 12,
-  },
-  status: {
-    fontSize: 13,
-    fontWeight: "700",
-    marginTop: 6,
-  },
+  createButtonText: { color: "#fff", fontWeight: "bold", fontSize: 17, marginLeft: 6 },
+
+  // Modal
+  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" },
+  modalContent: { backgroundColor: "#fff", width: "80%", borderRadius: 12, padding: 20 },
+  modalTitle: { fontSize: 18, fontWeight: "700", marginBottom: 16 },
+  modalButton: { paddingVertical: 10, paddingHorizontal: 14, borderWidth: 1, borderColor: "#FF7300", borderRadius: 20, marginBottom: 10 },
+  modalButtonActive: { backgroundColor: "#FF7300" },
+  modalButtonText: { fontSize: 15, color: "#FF7300", fontWeight: "500" },
+  modalButtonTextActive: { color: "#fff", fontWeight: "700" },
+  modalActions: { flexDirection: "row", justifyContent: "space-between", marginTop: 10 },
+  modalActionButton: { flex: 1, paddingVertical: 10, borderRadius: 8, marginHorizontal: 5, backgroundColor: "#FF7300", alignItems: "center" },
+  modalActionText: { color: "#fff", fontWeight: "700", fontSize: 15 },
 });
