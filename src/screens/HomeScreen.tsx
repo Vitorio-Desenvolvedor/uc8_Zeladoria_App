@@ -70,6 +70,11 @@ export default function HomeScreen() {
           <Text style={styles.footerLabel}>Home</Text>
         </TouchableOpacity>
 
+         <TouchableOpacity style={styles.footerButton} onPress={() => navigation.navigate("QRCode")}> 
+          <Ionicons name="qr-code-outline" size={24} color="#fff" />
+          <Text style={styles.footerLabel}>QRCode</Text>
+        </TouchableOpacity>
+
         <TouchableOpacity style={styles.footerButton} onPress={() => navigation.navigate("TelaPerfil")}>
           <Ionicons name="person-circle" size={24} color="#fff" />
           <Text style={styles.footerLabel}>Perfil</Text>
@@ -82,10 +87,6 @@ export default function HomeScreen() {
           </TouchableOpacity>
         )}
 
-        <TouchableOpacity style={styles.footerButton} onPress={logout}>
-          <Ionicons name="log-out-outline" size={24} color="#E53935" />
-          <Text style={[styles.footerLabel, { color: "#E53935" }]}>Sair</Text>
-        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );

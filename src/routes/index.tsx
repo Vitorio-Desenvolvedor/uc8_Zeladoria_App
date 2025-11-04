@@ -10,6 +10,7 @@ import SalasScreen from "../screens/SalasScreen";
 import SalaDetalhesScreen from "../screens/SalaDetalhesScreen";
 import TelaPerfil from "../screens/TelaPerfil";
 import NotificacoesScreen from "../screens/NotificacoesScreen";
+import QRCodeScreen from "../screens/QRCodeScreen";
 
 // Admin
 import HistoricoLimpezasScreen from "../screens/HistoricoLimpezasScreen";
@@ -23,6 +24,7 @@ import IniciarLimpezaScreen from "../screens/IniciarLimpezaScreen";
 import ConcluirLimpezaScreen from "../screens/ConcluirLimpezaScreen";
 
 import {AuthContext } from "../context/AuthContext";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -33,6 +35,7 @@ export default function Routes() {
   const { user, token } = authContext;
 
   return (
+    <SafeAreaProvider>
     <NavigationContainer>
       <Stack.Navigator
         screenOptions={{ headerShown: true }}
@@ -53,6 +56,7 @@ export default function Routes() {
             <Stack.Screen name="SalaDetalhes" component={SalaDetalhesScreen} options={{title: "Detalhes da Sala"}} />
             <Stack.Screen name="TelaPerfil" component={TelaPerfil} />
             <Stack.Screen name="HistoricoLimpezas" component={HistoricoLimpezasScreen} options={{ title: "Historio de Limpezas"}} />
+            <Stack.Screen name="QRCode" component={QRCodeScreen} options={{title: ""}} />
 
             {/* TELAS DE LIMPEZA ACESSÍVEIS A ZELADORES */}
          
@@ -104,5 +108,6 @@ export default function Routes() {
         )}
       </Stack.Navigator>
     </NavigationContainer>
+</SafeAreaProvider>
   );
 }

@@ -102,6 +102,7 @@ export type RootStackParamList = {
   Historico: undefined;
   CadastroUsuario: undefined;
   AdminScreen: undefined;
+  QRCode: undefined;
 
   // CRUD de salas
   FormSala: { onSalaCriada?: () => void } | undefined;
