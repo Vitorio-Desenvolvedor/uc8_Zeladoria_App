@@ -51,11 +51,11 @@ export default function Routes() {
         ) : (
           <>
             {/* ROTAS COMUNS A TODOS OS USUÁRIOS */}
-            <Stack.Screen name="Home" component={HomeScreen} />
+            <Stack.Screen name="Home" component={HomeScreen}  options={{title: ""}} />
             <Stack.Screen name="Salas" component={SalasScreen} />
-            <Stack.Screen name="SalaDetalhes" component={SalaDetalhesScreen} options={{title: "Detalhes da Sala"}} />
-            <Stack.Screen name="TelaPerfil" component={TelaPerfil} />
-            <Stack.Screen name="HistoricoLimpezas" component={HistoricoLimpezasScreen} options={{ title: "Historio de Limpezas"}} />
+            <Stack.Screen name="SalaDetalhes" component={SalaDetalhesScreen} options={{title: ""}} />
+            <Stack.Screen name="TelaPerfil" component={TelaPerfil}  options={{title: ""}}/>
+            <Stack.Screen name="HistoricoLimpezas" component={HistoricoLimpezasScreen} options={{ title: ""}} />
             <Stack.Screen name="QRCode" component={QRCodeScreen} options={{title: ""}} />
 
             {/* TELAS DE LIMPEZA ACESSÍVEIS A ZELADORES */}
@@ -63,29 +63,29 @@ export default function Routes() {
             <Stack.Screen
               name="IniciarLimpeza"
               component={IniciarLimpezaScreen }
-              options={{ title: "Iniciar Limpeza" }}
+              options={{ title: "" }}
             />
             <Stack.Screen
               name="ConcluirLimpeza"
               component={ConcluirLimpezaScreen}
-              options={{ title: "Concluir Limpeza" }}
+              options={{ title: "" }}
             />
             {/* CRIAÇÃO DE TELA */}
             <Stack.Screen
                 name="FormSala"
                 component={FormSala}
-                options={{ title: "Cadastrar Sala" }}
+                options={{ title: "" }}
                 />
             <Stack.Screen
                 name="FormEditSala"
                 component={FormEditSalaScreen}
-                options={{ title: "Editar Sala" }}
+                options={{ title: "" }}
                 />
                 
             <Stack.Screen 
                 name="Notificacao"
                 component={NotificacoesScreen} 
-                options={{ title: "Notificações" }}
+                options={{ title: "" }}
                    />
 
             {/* ROTAS SOMENTE PARA ADMINISTRADORES */}

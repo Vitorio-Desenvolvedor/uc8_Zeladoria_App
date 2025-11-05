@@ -8,6 +8,7 @@ import {
   Image,
   ActivityIndicator,
   Alert,
+  ScrollView,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useRoute, useNavigation, RouteProp } from "@react-navigation/native";
@@ -18,14 +19,16 @@ import { RootStackParamList } from "../routes/types";
 export default function ConcluirLimpezaScreen() {
   const route = useRoute<RouteProp<RootStackParamList, "ConcluirLimpeza">>();
   const navigation = useNavigation();
-  const { salaId, registroId } = route.params; 
+  const { salaId, registroId } = route.params;
 
   const [observacoes, setObservacoes] = useState("");
-  const [foto, setFoto] = useState<string | null>(null);
+  const [foto1, setFoto1] = useState<string | null>(null);
+  const [foto2, setFoto2] = useState<string | null>(null);
+  const [foto3, setFoto3] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Escolher foto da galeria
-  const escolherFotoGaleria = async () => {
+  // Função genérica para escolher foto da galeria
+  const escolherFotoGaleria = async (setFoto: React.Dispatch<React.SetStateAction<string | null>>) => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
       Alert.alert("Permissão negada", "Ative o acesso à galeria.");
@@ -43,8 +46,8 @@ export default function ConcluirLimpezaScreen() {
     }
   };
 
-  // Tirar foto com câmera
-  const tirarFotoCamera = async () => {
+  // Função genérica para tirar foto
+  const tirarFotoCamera = async (setFoto: React.Dispatch<React.SetStateAction<string | null>>) => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") {
       Alert.alert("Permissão negada", "Ative o acesso à câmera.");
@@ -61,13 +64,9 @@ export default function ConcluirLimpezaScreen() {
     }
   };
 
-  // Remover foto
-  const removerFoto = () => setFoto(null);
-
- 
   const concluirLimpeza = async () => {
-    if (!foto) {
-      Alert.alert("Erro", "Você precisa tirar ou escolher uma foto!");
+    if (!foto1 && !foto2 && !foto3) {
+      Alert.alert("Erro", "Envie pelo menos uma foto!");
       return;
     }
 
@@ -78,8 +77,10 @@ export default function ConcluirLimpezaScreen() {
 
     setLoading(true);
     try {
-      console.log("📸 Enviando foto...");
-      await SalaAPI.enviarFotoLimpeza(registroId, foto);
+      console.log("📸 Enviando fotos...");
+      if (foto1) await SalaAPI.enviarFotoLimpeza(registroId, foto1);
+      if (foto2) await SalaAPI.enviarFotoLimpeza(registroId, foto2);
+      if (foto3) await SalaAPI.enviarFotoLimpeza(registroId, foto3);
 
       console.log("🧼 Concluindo limpeza...");
       await SalaAPI.concluirLimpeza(salaId, observacoes);
@@ -97,8 +98,43 @@ export default function ConcluirLimpezaScreen() {
     }
   };
 
+  // Função para renderizar cada campo de foto
+  const renderCampoFoto = (foto: string | null, setFoto: any, label: string) => (
+    <View style={styles.fotoSection}>
+      <Text style={styles.fotoLabel}>{label}</Text>
+      {foto ? (
+        <View style={styles.previewContainer}>
+          <Image source={{ uri: foto }} style={styles.preview} />
+          <TouchableOpacity style={styles.removeButton} onPress={() => setFoto(null)}>
+            <Ionicons name="close-circle" size={30} color="#ff5252" />
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <TouchableOpacity
+          style={styles.imagePlaceholder}
+          onPress={() => escolherFotoGaleria(setFoto)}
+        >
+          <Ionicons name="camera" size={40} color="#999" />
+          <Text style={styles.placeholderText}>Toque para adicionar foto</Text>
+        </TouchableOpacity>
+      )}
+
+      <View style={styles.buttonsRow}>
+        <TouchableOpacity style={styles.actionButton} onPress={() => tirarFotoCamera(setFoto)}>
+          <Ionicons name="camera-outline" size={20} color="#0277bd" />
+          <Text style={styles.actionText}>Câmera</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.actionButton} onPress={() => escolherFotoGaleria(setFoto)}>
+          <Ionicons name="image-outline" size={20} color="#0277bd" />
+          <Text style={styles.actionText}>Galeria</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Concluir Limpeza</Text>
 
       <TextInput
@@ -109,65 +145,36 @@ export default function ConcluirLimpezaScreen() {
         multiline
       />
 
-      {/* Área de imagem */}
-      <View style={styles.imageContainer}>
-        {foto ? (
-          <View style={styles.previewContainer}>
-            <Image source={{ uri: foto }} style={styles.preview} />
-            <TouchableOpacity style={styles.removeButton} onPress={removerFoto}>
-              <Ionicons name="close-circle" size={30} color="#ff5252" />
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <TouchableOpacity style={styles.imagePlaceholder} onPress={escolherFotoGaleria}>
-            <Ionicons name="camera" size={40} color="#999" />
-            <Text style={styles.placeholderText}>Toque para adicionar foto</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-
-      <View style={styles.buttonsRow}>
-        <TouchableOpacity style={styles.actionButton} onPress={tirarFotoCamera}>
-          <Ionicons name="camera-outline" size={20} color="#0277bd" />
-          <Text style={styles.actionText}>Câmera</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.actionButton} onPress={escolherFotoGaleria}>
-          <Ionicons name="image-outline" size={20} color="#0277bd" />
-          <Text style={styles.actionText}>Galeria</Text>
-        </TouchableOpacity>
-      </View>
+      {renderCampoFoto(foto1, setFoto1, "Foto 1")}
+      {renderCampoFoto(foto2, setFoto2, "Foto 2")}
+      {renderCampoFoto(foto3, setFoto3, "Foto 3")}
 
       {loading ? (
-        <ActivityIndicator size="large" color="#004A8D" style={{ marginTop: 10 }} />
+        <ActivityIndicator size="large" color="#004A8D" style={{ marginTop: 20 }} />
       ) : (
         <TouchableOpacity style={styles.saveButton} onPress={concluirLimpeza}>
           <Text style={styles.saveButtonText}>Marcar como Limpa</Text>
         </TouchableOpacity>
       )}
-    </View>
+    </ScrollView>
   );
 }
 
-//  Estilos
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff", padding: 20 },
-  title: { fontSize: 22, fontWeight: "bold", marginBottom: 20, color: "#004A8D" },
+  container: { backgroundColor: "#fff", padding: 20, paddingBottom: 40 },
+  title: { fontSize: 22, fontWeight: "bold", marginBottom: 20, color: "#004A8D", textAlign: "center" },
 
   input: {
     borderWidth: 1,
     borderColor: "#ccc",
-    padding: 20,
+    padding: 18,
     borderRadius: 10,
     marginBottom: 20,
     textAlignVertical: "top",
   },
 
-  imageContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 15,
-  },
+  fotoSection: { marginBottom: 25 },
+  fotoLabel: { fontWeight: "bold", fontSize: 16, color: "#004A8D", marginBottom: 8 },
 
   imagePlaceholder: {
     width: "100%",
@@ -181,11 +188,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fafafa",
   },
 
-  placeholderText: {
-    color: "#999",
-    marginTop: 8,
-    fontSize: 14,
-  },
+  placeholderText: { color: "#999", marginTop: 8, fontSize: 14 },
 
   previewContainer: {
     position: "relative",
@@ -195,11 +198,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
 
-  preview: {
-    width: "100%",
-    height: "100%",
-    borderRadius: 12,
-  },
+  preview: { width: "100%", height: "100%", borderRadius: 12 },
 
   removeButton: {
     position: "absolute",
@@ -212,7 +211,7 @@ const styles = StyleSheet.create({
   buttonsRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 20,
+    marginTop: 8,
   },
 
   actionButton: {
@@ -226,7 +225,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
   },
 
-  actionText: { color: "#0277bd", fontWeight: "bold", marginLeft: 6 },
+  actionText: { color: "#004A8D", fontWeight: "bold", marginLeft: 6 },
 
   saveButton: {
     backgroundColor: "#004A8D",
@@ -235,5 +234,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  saveButtonText: { color: "#fff", fontWeight: "bold" },
+  saveButtonText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
 });

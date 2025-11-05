@@ -12,15 +12,13 @@ import {
   Alert,
 } from "react-native";
 import { useAuth } from "../context/AuthContext";
-import { useNavigation } from "@react-navigation/native"; // inativo
-import { Ionicons } from "@expo/vector-icons"; // Ícones
+import { Ionicons } from "@expo/vector-icons";
 
 export default function LoginScreen() {
-  const { login, loading, error, user } = useAuth();
-  // const navigation = useNavigation();
-
+  const { login, loading, error } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false); // Estado para mostrar/ocultar senha
 
   const handleLogin = async () => {
     if (!username || !password) {
@@ -28,14 +26,7 @@ export default function LoginScreen() {
       return;
     }
     await login(username, password);
-
-  //   if (user) {
-  //     // navigation.reset({
-  //       index: 0,
-  //       routes: [{ name: "Home" as never }],
-  //     });
-  //   }
-   };
+  };
 
   return (
     <ImageBackground
@@ -63,7 +54,7 @@ export default function LoginScreen() {
             />
           </View>
 
-          {/* Input senha */}
+          {/* Input senha com botão Show/Hide */}
           <View style={styles.inputContainer}>
             <Ionicons name="key-outline" size={20} color="#fff" style={styles.icon} />
             <TextInput
@@ -72,8 +63,15 @@ export default function LoginScreen() {
               placeholderTextColor="#ddd"
               value={password}
               onChangeText={setPassword}
-              secureTextEntry
+              secureTextEntry={!showPassword} // 👈 alterna exibição
             />
+            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+              <Ionicons
+                name={showPassword ? "eye-off-outline" : "eye-outline"} // 👁️ alterna ícone
+                size={22}
+                color="#fff"
+              />
+            </TouchableOpacity>
           </View>
 
           {error && <Text style={[styles.subtitulo, { color: "red" }]}>{error}</Text>}
@@ -93,7 +91,11 @@ export default function LoginScreen() {
           </TouchableOpacity>
 
           {/* Link esqueci senha */}
-          <TouchableOpacity onPress={() => Alert.alert("Recuperar senha", "Funcionalidade em desenvolvimento")}> 
+          <TouchableOpacity
+            onPress={() =>
+              Alert.alert("Recuperar senha", "Funcionalidade em desenvolvimento")
+            }
+          >
             <Text style={styles.link}>Esqueci minha senha</Text>
           </TouchableOpacity>
         </View>
@@ -145,7 +147,7 @@ const styles = StyleSheet.create({
   icon: { marginRight: 10 },
   input: { flex: 1, color: "#fff", paddingVertical: 8, fontSize: 16 },
   botao: {
-    backgroundColor: "#004A8D", // azul Senac botão login
+    backgroundColor: "#004A8D",
     paddingVertical: 12,
     borderRadius: 25,
     alignItems: "center",
