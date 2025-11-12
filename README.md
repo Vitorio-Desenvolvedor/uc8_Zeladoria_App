@@ -115,7 +115,7 @@ O objetivo principal é fornecer uma interface fluida e moderna para que colabor
 
 ---
 
-## 7. Instruções de Execução (Frontend)
+## 7. Instruções de Execução
 
 ### 7.1 Instalação do Projeto
 
@@ -140,5 +140,6 @@ O objetivo principal é fornecer uma interface fluida e moderna para que colabor
 ### 8.1 Usabilidade e Eficiência
 -	O Zeladoria App prioriza a experiência do usuário, oferecendo uma navegação fluida, design limpo e ações diretas. O uso intuitivo permite que colaboradores realizem as tarefas com poucos toques, otimizando o tempo e reduzindo erros operacionais.
 
+Confira também o projeto complementar: [Zeladoria API](https://github.com/thalsime/uc8_zeladoria)
 
 
