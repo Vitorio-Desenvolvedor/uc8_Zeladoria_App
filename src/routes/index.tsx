@@ -51,7 +51,7 @@ export default function Routes() {
         ) : (
           <>
             {/* ROTAS COMUNS A TODOS OS USUÁRIOS */}
-            <Stack.Screen name="Home" component={HomeScreen}  options={{title: ""}} />
+            <Stack.Screen name="Home" component={HomeScreen}  options={{headerShown: false }} />
             <Stack.Screen name="Salas" component={SalasScreen} />
             <Stack.Screen name="SalaDetalhes" component={SalaDetalhesScreen} options={{title: ""}} />
             <Stack.Screen name="TelaPerfil" component={TelaPerfil}  options={{title: ""}}/>
